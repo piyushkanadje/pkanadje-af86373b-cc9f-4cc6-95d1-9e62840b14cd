@@ -18,7 +18,7 @@ export class TaskOrgGuard implements CanActivate {
       return true;
     }
 
-    // Use findByIdWithDeleted to support restore endpoint for soft-deleted tasks
+
     const task = await this.tasksService.findByIdWithDeleted(taskId);
 
     if (!task) {
