@@ -13,6 +13,14 @@ import {
   Request,
   ForbiddenException,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -22,7 +30,7 @@ import {
   OrgRolesGuard,
   OrgRoles,
 } from '@task-manager/auth';
-import { OrganizationRole } from '@task-manager/data';
+import { OrganizationRole, Task } from '@task-manager/data';
 import { AuditInterceptor } from '../audit/audit.interceptor';
 
 interface AuthenticatedRequest extends Request {
@@ -31,6 +39,8 @@ interface AuthenticatedRequest extends Request {
   userOrgRole?: OrganizationRole;
 }
 
+@ApiTags('Tasks')
+@ApiBearerAuth('JWT-auth')
 @Controller('tasks')
 @UseInterceptors(AuditInterceptor)
 export class TasksController {
@@ -39,6 +49,11 @@ export class TasksController {
   @Post()
   @UseGuards(JwtAuthGuard, OrgRolesGuard)
   @OrgRoles(OrganizationRole.ADMIN)
+  @ApiOperation({ summary: 'Create a new task' })
+  @ApiResponse({ status: 201, description: 'Task created successfully', type: Task })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({ status: 403, description: 'Forbidden - User does not have Admin role' })
+  @ApiResponse({ status: 404, description: 'Organization not found' })
   async create(
     @Body() createTaskDto: CreateTaskDto,
     @Request() req: AuthenticatedRequest
@@ -49,6 +64,11 @@ export class TasksController {
   @Get()
   @UseGuards(JwtAuthGuard, OrgRolesGuard)
   @OrgRoles(OrganizationRole.VIEWER)
+  @ApiOperation({ summary: 'Get all tasks for an organization' })
+  @ApiQuery({ name: 'organizationId', description: 'Organization UUID', required: true })
+  @ApiResponse({ status: 200, description: 'List of tasks retrieved successfully', type: [Task] })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({ status: 403, description: 'Forbidden - User does not have access to this organization' })
   async findAll(@Query('organizationId') organizationId: string) {
     return this.tasksService.findByOrganization(organizationId);
   }
@@ -56,6 +76,12 @@ export class TasksController {
   @Put(':id')
   @UseGuards(JwtAuthGuard, TaskOrgGuard, OrgRolesGuard)
   @OrgRoles(OrganizationRole.VIEWER)
+  @ApiOperation({ summary: 'Update a task' })
+  @ApiParam({ name: 'id', description: 'Task UUID' })
+  @ApiResponse({ status: 200, description: 'Task updated successfully', type: Task })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Viewers can only update task status' })
+  @ApiResponse({ status: 404, description: 'Task not found' })
   async update(
     @Param('id') id: string,
     @Body() updateTaskDto: UpdateTaskDto,
@@ -84,6 +110,12 @@ export class TasksController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, TaskOrgGuard, OrgRolesGuard)
   @OrgRoles(OrganizationRole.ADMIN)
+  @ApiOperation({ summary: 'Soft delete a task' })
+  @ApiParam({ name: 'id', description: 'Task UUID' })
+  @ApiResponse({ status: 200, description: 'Task deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({ status: 403, description: 'Forbidden - User does not have Admin role' })
+  @ApiResponse({ status: 404, description: 'Task not found' })
   async remove(@Param('id') id: string) {
     await this.tasksService.delete(id);
     return { message: 'Task deleted successfully' };
@@ -92,6 +124,12 @@ export class TasksController {
   @Patch(':id/restore')
   @UseGuards(JwtAuthGuard, TaskOrgGuard, OrgRolesGuard)
   @OrgRoles(OrganizationRole.ADMIN)
+  @ApiOperation({ summary: 'Restore a soft-deleted task' })
+  @ApiParam({ name: 'id', description: 'Task UUID' })
+  @ApiResponse({ status: 200, description: 'Task restored successfully', type: Task })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({ status: 403, description: 'Forbidden - User does not have Admin role' })
+  @ApiResponse({ status: 404, description: 'Task not found or not deleted' })
   async restore(@Param('id') id: string) {
     const task = await this.tasksService.restoreTask(id);
     return { message: 'Task restored successfully', task };
@@ -100,6 +138,11 @@ export class TasksController {
   @Get('deleted')
   @UseGuards(JwtAuthGuard, OrgRolesGuard)
   @OrgRoles(OrganizationRole.ADMIN)
+  @ApiOperation({ summary: 'Get all soft-deleted tasks for an organization' })
+  @ApiQuery({ name: 'organizationId', description: 'Organization UUID', required: true })
+  @ApiResponse({ status: 200, description: 'List of deleted tasks retrieved successfully', type: [Task] })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
+  @ApiResponse({ status: 403, description: 'Forbidden - User does not have Admin role' })
   async findDeleted(@Query('organizationId') organizationId: string) {
     return this.tasksService.findDeleted(organizationId);
   }
