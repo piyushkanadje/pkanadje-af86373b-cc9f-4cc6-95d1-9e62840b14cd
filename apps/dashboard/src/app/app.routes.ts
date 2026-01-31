@@ -2,10 +2,13 @@ import { Route } from '@angular/router';
 import { authGuard, noAuthGuard } from './core/guards';
 
 export const appRoutes: Route[] = [
-  // Default redirect
+  // Landing page (public marketing page)
   {
     path: '',
-    redirectTo: 'dashboard',
+    loadComponent: () =>
+      import('./pages/landing/landing.component').then(
+        (m) => m.LandingComponent
+      ),
     pathMatch: 'full',
   },
 

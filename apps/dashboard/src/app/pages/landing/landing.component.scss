@@ -1,0 +1,275 @@
+/**
+ * ============================================================================
+ * LANDING PAGE STYLES
+ * ============================================================================
+ * 
+ * This file contains custom SCSS styles for the Landing Page component.
+ * Most styling is handled by TailwindCSS utility classes in the HTML template.
+ * These styles provide additional customization for animations and effects
+ * that are difficult to achieve with Tailwind alone.
+ * 
+ * ============================================================================
+ */
+
+// ============================================================================
+// HOST ELEMENT
+// ============================================================================
+
+:host {
+  display: block;
+}
+
+// ============================================================================
+// SMOOTH SCROLL BEHAVIOR
+// ============================================================================
+
+:host ::ng-deep html {
+  scroll-behavior: smooth;
+}
+
+// ============================================================================
+// CUSTOM ANIMATIONS
+// ============================================================================
+
+// Glow pulse animation for hero section elements
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+// Staggered glow animation (offset timing)
+@keyframes glow-pulse-delayed {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.03);
+  }
+}
+
+// Floating animation for visual elements
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+// ============================================================================
+// HERO SECTION STYLES
+// ============================================================================
+
+.hero-glow-primary {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+.hero-glow-secondary {
+  animation: glow-pulse-delayed 5s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.dashboard-glow {
+  animation: glow-pulse 6s ease-in-out infinite;
+}
+
+.cta-glow {
+  animation: glow-pulse 5s ease-in-out infinite;
+}
+
+// Grid pattern background
+.grid-pattern {
+  background-image: 
+    linear-gradient(to right, #1e293b 1px, transparent 1px),
+    linear-gradient(to bottom, #1e293b 1px, transparent 1px);
+  background-size: 4rem 4rem;
+}
+
+// ============================================================================
+// 3D DASHBOARD CONTAINER
+// ============================================================================
+
+.dashboard-container {
+  perspective: 1000px;
+}
+
+.dashboard-frame {
+  transform: rotateX(10deg) rotateY(0deg);
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease-out;
+  
+  &:hover {
+    transform: rotateX(5deg) rotateY(0deg);
+  }
+}
+
+// ============================================================================
+// KANBAN CARD INTERACTIONS
+// ============================================================================
+
+.kanban-card {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15);
+  }
+}
+
+// ============================================================================
+// FEATURE CARDS
+// ============================================================================
+
+.feature-card {
+  // Subtle lift effect on hover
+  &:hover {
+    transform: translateY(-4px);
+  }
+  
+  // Ensure smooth transitions for all properties
+  transition: 
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+// ============================================================================
+// COMPANY LOGOS (SOCIAL PROOF)
+// ============================================================================
+
+.company-logo {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  cursor: default;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+// ============================================================================
+// RESPONSIVE ADJUSTMENTS
+// ============================================================================
+
+// Mobile-specific styles
+@media (max-width: 640px) {
+  .dashboard-frame {
+    transform: rotateX(5deg) rotateY(0deg);
+  }
+  
+  // Reduce glow intensity on mobile for performance
+  .hero-glow-primary,
+  .hero-glow-secondary,
+  .dashboard-glow,
+  .cta-glow {
+    animation: none;
+    opacity: 0.3;
+  }
+}
+
+// Tablet adjustments
+@media (min-width: 641px) and (max-width: 1024px) {
+  .dashboard-frame {
+    transform: rotateX(8deg) rotateY(0deg);
+  }
+}
+
+// ============================================================================
+// REDUCED MOTION PREFERENCES
+// Accessibility: Respect user's motion preferences
+// ============================================================================
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-glow-primary,
+  .hero-glow-secondary,
+  .dashboard-glow,
+  .cta-glow {
+    animation: none;
+  }
+  
+  .dashboard-frame {
+    transition: none;
+    
+    &:hover {
+      transform: rotateX(10deg) rotateY(0deg);
+    }
+  }
+  
+  .feature-card {
+    transition: none;
+    
+    &:hover {
+      transform: none;
+    }
+  }
+  
+  .kanban-card {
+    transition: none;
+    
+    &:hover {
+      transform: none;
+    }
+  }
+  
+  .company-logo {
+    transition: none;
+    
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+// ============================================================================
+// DARK MODE ENHANCEMENTS
+// Additional styles for improved dark mode appearance
+// ============================================================================
+
+// Enhance text selection in dark mode
+::selection {
+  background-color: rgba(139, 92, 246, 0.3);
+  color: white;
+}
+
+// Focus styles for accessibility
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+
+// ============================================================================
+// CUSTOM SCROLLBAR (WebKit browsers)
+// ============================================================================
+
+:host ::ng-deep ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+:host ::ng-deep ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+:host ::ng-deep ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+  
+  &:hover {
+    background: #475569;
+  }
+}
+
+// Firefox scrollbar
+:host ::ng-deep * {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #0f172a;
+}
