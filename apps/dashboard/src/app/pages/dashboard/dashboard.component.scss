@@ -1,0 +1,8 @@
+/* Dashboard component styles */
+:host {
+  display: block;
+}
+
+.stats-card {
+  @apply bg-white overflow-hidden shadow rounded-lg;
+}

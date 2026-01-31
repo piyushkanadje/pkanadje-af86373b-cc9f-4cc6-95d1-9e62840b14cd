@@ -1,0 +1,279 @@
+<div class="min-h-screen bg-gray-100">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex">
+          <div class="flex-shrink-0 flex items-center">
+            <span class="text-xl font-bold text-indigo-600">Task Manager</span>
+          </div>
+          <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <a
+              routerLink="/dashboard"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Dashboard
+            </a>
+            <a
+              routerLink="/tasks"
+              class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Tasks
+            </a>
+            <a
+              routerLink="/organizations"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Organizations
+            </a>
+            <a
+              routerLink="/audit-log"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Audit Log
+            </a>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button
+            (click)="authService.logout()"
+            class="text-gray-500 hover:text-gray-700 text-sm font-medium"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 sm:px-0">
+      <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-semibold text-gray-900">Tasks</h1>
+        <button
+          (click)="showCreateModal.set(true)"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          New Task
+        </button>
+      </div>
+    </div>
+
+    @if (taskService.error()) {
+      <div class="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <span class="block sm:inline">{{ taskService.error() }}</span>
+      </div>
+    }
+
+    <!-- Task Kanban Board -->
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <!-- To Do Column -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+          <span class="w-3 h-3 bg-yellow-400 rounded-full mr-2"></span>
+          To Do ({{ taskService.todoTasks().length }})
+        </h2>
+        <div class="space-y-3">
+          @for (task of taskService.todoTasks(); track task.id) {
+            <button
+              type="button"
+              class="w-full text-left bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow"
+              (click)="editTask(task)"
+            >
+              <h3 class="font-medium text-gray-900">{{ task.title }}</h3>
+              @if (task.description) {
+                <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ task.description }}</p>
+              }
+              <div class="mt-2 flex items-center space-x-2">
+                @if (task.priority) {
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                    [ngClass]="getPriorityClass(task.priority)"
+                  >
+                    {{ task.priority }}
+                  </span>
+                }
+              </div>
+            </button>
+          } @empty {
+            <p class="text-sm text-gray-500 text-center py-4">No tasks</p>
+          }
+        </div>
+      </div>
+
+      <!-- In Progress Column -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+          <span class="w-3 h-3 bg-blue-400 rounded-full mr-2"></span>
+          In Progress ({{ taskService.inProgressTasks().length }})
+        </h2>
+        <div class="space-y-3">
+          @for (task of taskService.inProgressTasks(); track task.id) {
+            <button
+              type="button"
+              class="w-full text-left bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow"
+              (click)="editTask(task)"
+            >
+              <h3 class="font-medium text-gray-900">{{ task.title }}</h3>
+              @if (task.description) {
+                <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ task.description }}</p>
+              }
+              <div class="mt-2 flex items-center space-x-2">
+                @if (task.priority) {
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                    [ngClass]="getPriorityClass(task.priority)"
+                  >
+                    {{ task.priority }}
+                  </span>
+                }
+              </div>
+            </button>
+          } @empty {
+            <p class="text-sm text-gray-500 text-center py-4">No tasks</p>
+          }
+        </div>
+      </div>
+
+      <!-- Done Column -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+          <span class="w-3 h-3 bg-green-400 rounded-full mr-2"></span>
+          Done ({{ taskService.doneTasks().length }})
+        </h2>
+        <div class="space-y-3">
+          @for (task of taskService.doneTasks(); track task.id) {
+            <button
+              type="button"
+              class="w-full text-left bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow"
+              (click)="editTask(task)"
+            >
+              <h3 class="font-medium text-gray-900">{{ task.title }}</h3>
+              @if (task.description) {
+                <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ task.description }}</p>
+              }
+              <div class="mt-2 flex items-center space-x-2">
+                @if (task.priority) {
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                    [ngClass]="getPriorityClass(task.priority)"
+                  >
+                    {{ task.priority }}
+                  </span>
+                }
+              </div>
+            </button>
+          } @empty {
+            <p class="text-sm text-gray-500 text-center py-4">No tasks</p>
+          }
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Create Task Modal -->
+  @if (showCreateModal()) {
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <button
+          type="button"
+          class="fixed inset-0 transition-opacity cursor-default"
+          (click)="closeModal()"
+          aria-label="Close modal"
+        >
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </button>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
+                {{ editingTask() ? 'Edit Task' : 'Create New Task' }}
+              </h3>
+
+              <div class="space-y-4">
+                <div>
+                  <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                  <input
+                    type="text"
+                    id="title"
+                    formControlName="title"
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                  <textarea
+                    id="description"
+                    formControlName="description"
+                    rows="3"
+                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  ></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select
+                      id="status"
+                      formControlName="status"
+                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                      <option [value]="TaskStatus.TODO">To Do</option>
+                      <option [value]="TaskStatus.IN_PROGRESS">In Progress</option>
+                      <option [value]="TaskStatus.DONE">Done</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label for="priority" class="block text-sm font-medium text-gray-700">Priority</label>
+                    <select
+                      id="priority"
+                      formControlName="priority"
+                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                      <option [value]="TaskPriority.LOW">Low</option>
+                      <option [value]="TaskPriority.MEDIUM">Medium</option>
+                      <option [value]="TaskPriority.HIGH">High</option>
+                      <option [value]="TaskPriority.URGENT">Urgent</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <button
+                type="submit"
+                [disabled]="taskForm.invalid || taskService.isLoading()"
+                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+              >
+                {{ editingTask() ? 'Update' : 'Create' }}
+              </button>
+              @if (editingTask()) {
+                <button
+                  type="button"
+                  (click)="deleteTask()"
+                  class="mt-3 w-full inline-flex justify-center rounded-md border border-red-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                >
+                  Delete
+                </button>
+              }
+              <button
+                type="button"
+                (click)="closeModal()"
+                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+</div>

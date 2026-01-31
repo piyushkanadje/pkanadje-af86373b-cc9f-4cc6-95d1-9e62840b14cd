@@ -5,8 +5,9 @@ import { Organization } from './entities/organization.entity';
 import { UserOrganization } from './entities/user-organization.entity';
 import { Task } from './entities/task.entity';
 import { AuditLog } from './entities/audit-log.entity';
+import { Invitation } from './entities/invitation.entity';
 
-export const entities = [User, Organization, UserOrganization, Task, AuditLog];
+export const entities = [User, Organization, UserOrganization, Task, AuditLog, Invitation];
 
 @Module({
   imports: [TypeOrmModule.forFeature(entities)],

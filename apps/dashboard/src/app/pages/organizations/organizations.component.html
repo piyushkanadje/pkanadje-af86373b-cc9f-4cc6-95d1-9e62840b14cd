@@ -1,0 +1,196 @@
+<div class="min-h-screen bg-gray-100">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex">
+          <div class="flex-shrink-0 flex items-center">
+            <span class="text-xl font-bold text-indigo-600">Task Manager</span>
+          </div>
+          <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <a
+              routerLink="/dashboard"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Dashboard
+            </a>
+            <a
+              routerLink="/tasks"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Tasks
+            </a>
+            <a
+              routerLink="/organizations"
+              class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Organizations
+            </a>
+            <a
+              routerLink="/audit-log"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Audit Log
+            </a>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button
+            (click)="authService.logout()"
+            class="text-gray-500 hover:text-gray-700 text-sm font-medium"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 sm:px-0">
+      <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-semibold text-gray-900">Organizations</h1>
+        <button
+          (click)="showCreateModal.set(true)"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          New Organization
+        </button>
+      </div>
+    </div>
+
+    @if (organizationService.error()) {
+      <div class="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <span class="block sm:inline">{{ organizationService.error() }}</span>
+      </div>
+    }
+
+    <!-- Organizations List -->
+    <div class="mt-6">
+      <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <ul class="divide-y divide-gray-200">
+          @for (membership of authService.userOrganizations(); track membership.organizationId) {
+            <li>
+              <button
+                type="button"
+                class="w-full text-left px-4 py-4 flex items-center sm:px-6 hover:bg-gray-50 cursor-pointer"
+                (click)="selectOrganization(membership)"
+              >
+                <div class="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <div
+                        class="h-12 w-12 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+                        [ngClass]="organizationService.currentOrg()?.id === membership.organizationId ? 'bg-indigo-600' : 'bg-gray-400'"
+                      >
+                        {{ membership.organizationName.charAt(0).toUpperCase() }}
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <p class="font-medium text-indigo-600 truncate">
+                        {{ membership.organizationName }}
+                      </p>
+                      <p class="mt-1 text-sm text-gray-500">
+                        Role: {{ membership.role }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="ml-5 flex-shrink-0">
+                  @if (organizationService.currentOrg()?.id === membership.organizationId) {
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Active
+                    </span>
+                  } @else {
+                    <span class="text-sm text-gray-500">Click to switch</span>
+                  }
+                </div>
+              </button>
+            </li>
+          } @empty {
+            <li class="px-4 py-8 text-center text-gray-500">
+              <p>No organizations yet. Create one to get started!</p>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+
+    <!-- Current Organization Details -->
+    @if (organizationService.currentOrg()) {
+      <div class="mt-8">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Current Organization</h2>
+        <div class="bg-white shadow sm:rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="sm:flex sm:items-start sm:justify-between">
+              <div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                  {{ organizationService.currentOrg()?.name }}
+                </h3>
+                <div class="mt-2 max-w-xl text-sm text-gray-500">
+                  <p>Organization ID: {{ organizationService.currentOrg()?.id }}</p>
+                  <p>Created: {{ organizationService.currentOrg()?.createdAt | date:'medium' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </main>
+
+  <!-- Create Organization Modal -->
+  @if (showCreateModal()) {
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <button
+          type="button"
+          class="fixed inset-0 transition-opacity cursor-default"
+          (click)="closeModal()"
+          aria-label="Close modal"
+        >
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </button>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <form [formGroup]="orgForm" (ngSubmit)="onSubmit()">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <h3 class="text-lg font-medium text-gray-900 mb-4">Create New Organization</h3>
+
+              <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  formControlName="name"
+                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="Enter organization name"
+                />
+              </div>
+            </div>
+
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <button
+                type="submit"
+                [disabled]="orgForm.invalid || organizationService.isLoading()"
+                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+              >
+                Create
+              </button>
+              <button
+                type="button"
+                (click)="closeModal()"
+                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+</div>

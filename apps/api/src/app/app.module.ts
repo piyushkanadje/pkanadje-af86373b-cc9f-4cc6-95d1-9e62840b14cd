@@ -7,6 +7,7 @@ import { DataModule } from '@task-manager/data';
 import { AuthModule } from '@task-manager/auth';
 import { TasksModule } from './tasks/tasks.module';
 import { AuditModule } from './audit/audit.module';
+import { InvitationsModule } from './invitations/invitations.module';
 import databaseConfig from '../config/database.config';
 
 @Module({
@@ -26,6 +27,7 @@ import databaseConfig from '../config/database.config';
     AuthModule,
     TasksModule,
     AuditModule,
+    InvitationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

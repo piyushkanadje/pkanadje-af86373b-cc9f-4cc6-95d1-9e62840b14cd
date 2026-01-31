@@ -1,0 +1,231 @@
+<div class="min-h-screen bg-gray-100">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex">
+          <div class="flex-shrink-0 flex items-center">
+            <span class="text-xl font-bold text-indigo-600">Task Manager</span>
+          </div>
+          <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <a
+              routerLink="/dashboard"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Dashboard
+            </a>
+            <a
+              routerLink="/tasks"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Tasks
+            </a>
+            <a
+              routerLink="/organizations"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Organizations
+            </a>
+            <a
+              routerLink="/audit-log"
+              class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Audit Log
+            </a>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button
+            (click)="authService.logout()"
+            class="text-gray-500 hover:text-gray-700 text-sm font-medium"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 sm:px-0">
+      <h1 class="text-2xl font-semibold text-gray-900">Audit Log</h1>
+      <p class="mt-1 text-sm text-gray-600">Track all changes and activities in your organization</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="mt-4 bg-white shadow sm:rounded-lg">
+      <div class="px-4 py-4 sm:px-6 flex flex-wrap gap-4">
+        <div>
+          <label for="entityType" class="block text-sm font-medium text-gray-700">Entity Type</label>
+          <select
+            id="entityType"
+            [(ngModel)]="selectedEntityType"
+            (ngModelChange)="loadAuditLogs()"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">All</option>
+            <option value="Task">Tasks</option>
+            <option value="Organization">Organizations</option>
+            <option value="User">Users</option>
+          </select>
+        </div>
+        <div>
+          <label for="action" class="block text-sm font-medium text-gray-700">Action</label>
+          <select
+            id="action"
+            [(ngModel)]="selectedAction"
+            (ngModelChange)="loadAuditLogs()"
+            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          >
+            <option value="">All</option>
+            <option value="CREATE">Created</option>
+            <option value="UPDATE">Updated</option>
+            <option value="DELETE">Deleted</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <button
+            (click)="clearFilters()"
+            class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <div class="mt-6 flex justify-center">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    }
+
+    <!-- Audit Log Table -->
+    <div class="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Timestamp
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              User
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Action
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Entity
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Details
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          @for (logEntry of auditLogs(); track logEntry.id) {
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ logEntry.createdAt | date:'medium' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ logEntry.userId }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                  [ngClass]="{
+                    'bg-green-100 text-green-800': logEntry.action === 'CREATE',
+                    'bg-blue-100 text-blue-800': logEntry.action === 'UPDATE',
+                    'bg-red-100 text-red-800': logEntry.action === 'DELETE'
+                  }"
+                >
+                  {{ logEntry.action }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ logEntry.entityType }} ({{ logEntry.entityId }})
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-500 max-w-md truncate">
+                @if (logEntry.changes) {
+                  <button
+                    type="button"
+                    class="text-indigo-600 hover:text-indigo-900"
+                    (click)="showDetails(logEntry)"
+                  >
+                    View Changes
+                  </button>
+                } @else {
+                  <span class="text-gray-400">No details</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                No audit logs found
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-4 flex items-center justify-between">
+      <div class="text-sm text-gray-700">
+        Showing <span class="font-medium">{{ auditLogs().length }}</span> results
+      </div>
+      <div class="flex space-x-2">
+        <button
+          (click)="loadPrevious()"
+          [disabled]="currentPage() === 1"
+          class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <button
+          (click)="loadNext()"
+          [disabled]="auditLogs().length < pageSize"
+          class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Details Modal -->
+  @if (selectedLog()) {
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <button
+          type="button"
+          class="fixed inset-0 transition-opacity cursor-default"
+          (click)="closeDetails()"
+          aria-label="Close details"
+        >
+          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </button>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Change Details</h3>
+            <div class="mt-2">
+              <pre class="bg-gray-50 p-4 rounded text-sm overflow-auto max-h-96">{{ selectedLog()?.changes | json }}</pre>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              type="button"
+              (click)="closeDetails()"
+              class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

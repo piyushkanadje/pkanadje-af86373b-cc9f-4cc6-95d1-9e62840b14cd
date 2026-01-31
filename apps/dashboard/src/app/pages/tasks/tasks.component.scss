@@ -1,0 +1,19 @@
+/* Tasks component styles */
+:host {
+  display: block;
+}
+
+.task-card {
+  @apply bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition-shadow;
+}
+
+.kanban-column {
+  @apply bg-gray-50 rounded-lg p-4;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

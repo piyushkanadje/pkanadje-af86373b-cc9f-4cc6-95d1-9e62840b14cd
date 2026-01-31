@@ -1,0 +1,195 @@
+<div class="min-h-screen bg-gray-100">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex">
+          <div class="flex-shrink-0 flex items-center">
+            <span class="text-xl font-bold text-indigo-600">Task Manager</span>
+          </div>
+          <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <a
+              routerLink="/dashboard"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Dashboard
+            </a>
+            <a
+              routerLink="/tasks"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Tasks
+            </a>
+            <a
+              routerLink="/organizations"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Organizations
+            </a>
+            <a
+              routerLink="/settings"
+              class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+            >
+              Settings
+            </a>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button
+            (click)="authService.logout()"
+            class="text-gray-500 hover:text-gray-700 text-sm font-medium"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 sm:px-0">
+      <h1 class="text-2xl font-semibold text-gray-900">Settings</h1>
+      <p class="mt-1 text-sm text-gray-600">Manage your account settings and preferences</p>
+    </div>
+
+    <div class="mt-6">
+      <!-- Profile Section -->
+      <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Profile Information</h3>
+          <div class="mt-2 max-w-xl text-sm text-gray-500">
+            <p>Update your account profile information.</p>
+          </div>
+
+          @if (authService.currentUser()) {
+            <div class="mt-5 space-y-4">
+              <div>
+                <span class="block text-sm font-medium text-gray-700">Email</span>
+                <p class="mt-1 text-sm text-gray-900">{{ authService.currentUser()?.email }}</p>
+              </div>
+              <div>
+                <span class="block text-sm font-medium text-gray-700">Name</span>
+                <p class="mt-1 text-sm text-gray-900">
+                  {{ authService.currentUser()?.firstName }} {{ authService.currentUser()?.lastName }}
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Password Section -->
+      <div class="mt-6 bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Change Password</h3>
+          <div class="mt-2 max-w-xl text-sm text-gray-500">
+            <p>Ensure your account is using a strong password to stay secure.</p>
+          </div>
+          <form [formGroup]="passwordForm" (ngSubmit)="onPasswordSubmit()" class="mt-5 space-y-4">
+            <div>
+              <label for="currentPassword" class="block text-sm font-medium text-gray-700">
+                Current Password
+              </label>
+              <input
+                type="password"
+                id="currentPassword"
+                formControlName="currentPassword"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label for="newPassword" class="block text-sm font-medium text-gray-700">
+                New Password
+              </label>
+              <input
+                type="password"
+                id="newPassword"
+                formControlName="newPassword"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label for="confirmPassword" class="block text-sm font-medium text-gray-700">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <button
+                type="submit"
+                [disabled]="passwordForm.invalid"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              >
+                Update Password
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Notifications Section -->
+      <div class="mt-6 bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Notification Preferences</h3>
+          <div class="mt-2 max-w-xl text-sm text-gray-500">
+            <p>Manage how you receive notifications.</p>
+          </div>
+          <div class="mt-5 space-y-4">
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input
+                  id="emailNotifications"
+                  type="checkbox"
+                  [(ngModel)]="emailNotifications"
+                  class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                />
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="emailNotifications" class="font-medium text-gray-700">Email notifications</label>
+                <p class="text-gray-500">Receive email updates about task assignments and changes.</p>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input
+                  id="pushNotifications"
+                  type="checkbox"
+                  [(ngModel)]="pushNotifications"
+                  class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                />
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="pushNotifications" class="font-medium text-gray-700">Push notifications</label>
+                <p class="text-gray-500">Receive push notifications in your browser.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="mt-6 bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg leading-6 font-medium text-red-600">Danger Zone</h3>
+          <div class="mt-2 max-w-xl text-sm text-gray-500">
+            <p>Permanently delete your account and all associated data.</p>
+          </div>
+          <div class="mt-5">
+            <button
+              type="button"
+              class="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm"
+            >
+              Delete Account
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
