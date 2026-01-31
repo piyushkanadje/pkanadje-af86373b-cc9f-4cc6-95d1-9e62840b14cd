@@ -25,44 +25,49 @@ export const appRoutes: Route[] = [
     canActivate: [noAuthGuard],
   },
 
-  // Protected routes (auth required)
+  // Protected routes with shared layout
   {
-    path: 'dashboard',
+    path: '',
     loadComponent: () =>
-      import('./pages/dashboard/dashboard.component').then(
-        (m) => m.DashboardComponent
+      import('./layouts/dashboard-layout/dashboard-layout.component').then(
+        (m) => m.DashboardLayoutComponent
       ),
     canActivate: [authGuard],
-  },
-  {
-    path: 'tasks',
-    loadComponent: () =>
-      import('./pages/tasks/tasks.component').then((m) => m.TasksComponent),
-    canActivate: [authGuard],
-  },
-  {
-    path: 'organizations',
-    loadComponent: () =>
-      import('./pages/organizations/organizations.component').then(
-        (m) => m.OrganizationsComponent
-      ),
-    canActivate: [authGuard],
-  },
-  {
-    path: 'settings',
-    loadComponent: () =>
-      import('./pages/settings/settings.component').then(
-        (m) => m.SettingsComponent
-      ),
-    canActivate: [authGuard],
-  },
-  {
-    path: 'audit-log',
-    loadComponent: () =>
-      import('./pages/audit-log/audit-log.component').then(
-        (m) => m.AuditLogComponent
-      ),
-    canActivate: [authGuard],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./pages/dashboard/dashboard.component').then(
+            (m) => m.DashboardComponent
+          ),
+      },
+      {
+        path: 'tasks',
+        loadComponent: () =>
+          import('./pages/tasks/tasks.component').then((m) => m.TasksComponent),
+      },
+      {
+        path: 'organizations',
+        loadComponent: () =>
+          import('./pages/organizations/organizations.component').then(
+            (m) => m.OrganizationsComponent
+          ),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./pages/settings/settings.component').then(
+            (m) => m.SettingsComponent
+          ),
+      },
+      {
+        path: 'audit-log',
+        loadComponent: () =>
+          import('./pages/audit-log/audit-log.component').then(
+            (m) => m.AuditLogComponent
+          ),
+      },
+    ],
   },
 
   // Wildcard - redirect to dashboard

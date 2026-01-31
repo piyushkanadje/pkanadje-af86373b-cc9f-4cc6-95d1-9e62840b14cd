@@ -18,33 +18,33 @@ import { OrganizationRole } from '../enums/role.enum';
 @Index('idx_user_org_org', ['organizationId'])
 export class UserOrganization {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  userId!: string;
 
   @Column({ name: 'organization_id', type: 'uuid' })
-  organizationId: string;
+  organizationId!: string;
 
   @Column({
     type: 'enum',
     enum: OrganizationRole,
     default: OrganizationRole.VIEWER,
   })
-  role: OrganizationRole;
+  role!: OrganizationRole;
 
   @ManyToOne(() => User, (user) => user.organizationMemberships, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @ManyToOne(() => Organization, (org) => org.members, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'organization_id' })
-  organization: Organization;
+  organization!: Organization;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 }

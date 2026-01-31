@@ -2,7 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, of } from 'rxjs';
-import { IUserWithOrganizations } from '@task-manager/data';
+import { IUserWithOrganizations } from '@task-manager/data/frontend';
 
 interface LoginResponse {
   access_token: string;

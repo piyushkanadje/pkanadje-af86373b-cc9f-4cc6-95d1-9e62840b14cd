@@ -16,6 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@task-manager/data": ["libs/data/src/index.ts"],
+      "@task-manager/data/frontend": ["libs/data/src/frontend.ts"],
       "@task-manager/auth": ["libs/auth/src/index.ts"]
     }
   },

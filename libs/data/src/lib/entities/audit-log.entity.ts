@@ -16,31 +16,31 @@ import { Organization } from './organization.entity';
 @Index('idx_audit_timestamp', ['timestamp'])
 export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  userId!: string;
 
   @Column({ type: 'varchar', length: 10 })
-  action: string;
+  action!: string;
 
   @Column({ type: 'varchar', length: 255 })
-  resource: string;
+  resource!: string;
 
   @Column({ name: 'organization_id', type: 'uuid', nullable: true })
-  organizationId: string | null;
+  organizationId!: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
-  details: Record<string, unknown> | null;
+  details!: Record<string, unknown> | null;
 
   @CreateDateColumn({ name: 'timestamp' })
-  timestamp: Date;
+  timestamp!: Date;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 
   @ManyToOne(() => Organization, { nullable: true })
   @JoinColumn({ name: 'organization_id' })
-  organization: Organization | null;
+  organization!: Organization | null;
 }

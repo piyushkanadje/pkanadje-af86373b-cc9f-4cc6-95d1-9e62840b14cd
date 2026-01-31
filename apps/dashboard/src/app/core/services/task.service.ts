@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
-import { ITask, TaskStatus, TaskPriority } from '@task-manager/data';
+import { ITask, TaskStatus, TaskPriority } from '@task-manager/data/frontend';
 import { OrganizationService } from './organization.service';
 
 export interface CreateTaskDto {

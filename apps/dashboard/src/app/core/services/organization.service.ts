@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
-import { IOrganization, IOrganizationWithHierarchy } from '@task-manager/data';
+import { IOrganization, IOrganizationWithHierarchy } from '@task-manager/data/frontend';
 import { AuthService } from './auth.service';
 
 export interface CreateOrganizationDto {
