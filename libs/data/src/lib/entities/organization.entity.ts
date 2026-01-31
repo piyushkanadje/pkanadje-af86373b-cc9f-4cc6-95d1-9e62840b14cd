@@ -15,34 +15,34 @@ import { Task } from './task.entity';
 @Entity('organizations')
 export class Organization {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'varchar', length: 255 })
-  name: string;
+  name!: string;
 
   @Column({ name: 'parent_id', type: 'uuid', nullable: true })
   @Index('idx_org_parent')
-  parentId: string | null;
+  parentId!: string | null;
 
   @ManyToOne(() => Organization, (org) => org.children, {
     nullable: true,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'parent_id' })
-  parent: Organization | null;
+  parent!: Organization | null;
 
   @OneToMany(() => Organization, (org) => org.parent)
-  children: Organization[];
+  children!: Organization[];
 
   @OneToMany(() => UserOrganization, (userOrg) => userOrg.organization)
-  members: UserOrganization[];
+  members!: UserOrganization[];
 
   @OneToMany(() => Task, (task) => task.organization)
-  tasks: Task[];
+  tasks!: Task[];
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 }

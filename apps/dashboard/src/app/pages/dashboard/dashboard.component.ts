@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 import {
   AuthService,
   TaskService,
-  OrganizationService,
 } from '../../core/services';
 
 @Component({
@@ -17,14 +16,9 @@ import {
 export class DashboardComponent implements OnInit {
   readonly authService = inject(AuthService);
   readonly taskService = inject(TaskService);
-  readonly organizationService = inject(OrganizationService);
 
   ngOnInit(): void {
     // Load tasks when dashboard loads
     this.taskService.loadTasks();
-  }
-
-  logout(): void {
-    this.authService.logout();
   }
 }

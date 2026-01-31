@@ -18,48 +18,48 @@ import { InvitationStatus } from '../enums/invitation-status.enum';
 @Index('idx_invitation_org', ['organizationId'])
 export class Invitation {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'varchar', length: 255 })
-  email: string;
+  email!: string;
 
   @Column({ type: 'varchar', length: 64, unique: true })
-  token: string;
+  token!: string;
 
   @Column({
     type: 'enum',
     enum: OrganizationRole,
     default: OrganizationRole.VIEWER,
   })
-  role: OrganizationRole;
+  role!: OrganizationRole;
 
   @Column({
     type: 'enum',
     enum: InvitationStatus,
     default: InvitationStatus.PENDING,
   })
-  status: InvitationStatus;
+  status!: InvitationStatus;
 
   @Column({ name: 'organization_id', type: 'uuid' })
-  organizationId: string;
+  organizationId!: string;
 
   @ManyToOne(() => Organization, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'organization_id' })
-  organization: Organization;
+  organization!: Organization;
 
   @Column({ name: 'invited_by_id', type: 'uuid' })
-  invitedById: string;
+  invitedById!: string;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'invited_by_id' })
-  invitedBy: User;
+  invitedBy!: User;
 
   @Column({ name: 'expires_at', type: 'timestamp' })
-  expiresAt: Date;
+  expiresAt!: Date;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @Column({ name: 'accepted_at', type: 'timestamp', nullable: true })
-  acceptedAt: Date | null;
+  acceptedAt!: Date | null;
 }

@@ -3,6 +3,8 @@ import { OrganizationRole } from '../enums/role.enum';
 export interface IUser {
   id: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
   createdAt: Date;
   updatedAt: Date;
 }
