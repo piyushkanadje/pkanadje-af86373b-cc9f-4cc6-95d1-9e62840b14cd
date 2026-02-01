@@ -837,6 +837,108 @@ Authorization: Bearer <token>
 | GET | `/api/v1/invitations/organization/:id` | JWT | ADMIN | List invitations |
 | DELETE | `/api/v1/invitations/:id` | JWT | ADMIN | Revoke invitation |
 | GET | `/api/v1/audit-log` | JWT | ADMIN | Get audit logs |
+| GET | `/api/v1/auth/permissions/:orgId` | JWT | - | Get user permissions |
+| GET | `/api/v1/auth/all-permissions` | JWT | - | List all permissions |
+
+---
+
+## 🔮 Future Considerations
+
+### Granular Permission System (Implemented)
+
+The system now supports fine-grained permissions beyond role-based access:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         PERMISSION ARCHITECTURE                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────┐       ┌──────────────────────────┐       ┌──────────────────┐
+│   PERMISSION     │       │    ROLE_PERMISSION       │       │ USER_PERMISSION  │
+├──────────────────┤       ├──────────────────────────┤       ├──────────────────┤
+│ id (PK)          │       │ id (PK)                  │       │ id (PK)          │
+│ name             │◄──────│ permissionId (FK)        │       │ userId (FK)      │
+│ description      │       │ role (OWNER/ADMIN/VIEWER)│       │ organizationId   │
+│ resource         │       └──────────────────────────┘       │ permissionId (FK)│
+│ action           │                                          │ granted (bool)   │
+└──────────────────┘                                          └──────────────────┘
+                                                              (User-level overrides)
+```
+
+**Resources:** `TASK`, `ORGANIZATION`, `MEMBER`, `AUDIT_LOG`, `INVITATION`
+
+**Actions:** `CREATE`, `READ`, `UPDATE`, `DELETE`, `RESTORE`, `INVITE`, `MANAGE`
+
+**Usage:**
+```typescript
+// Backend - granular permission check
+@RequirePermission(PermissionResource.TASK, PermissionAction.CREATE)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+async createTask() { }
+
+// Frontend - reactive permission check
+canCreate = this.permissionsService.canCreateTasks; // Signal<boolean>
+```
+
+### Production Security Enhancements
+
+| Enhancement | Priority | Description |
+|-------------|----------|-------------|
+| **JWT Refresh Tokens** | High | Short-lived access tokens (15min) + long-lived refresh tokens (7d) to minimize token theft impact |
+| **CSRF Protection** | High | Double-submit cookie pattern for state-changing requests |
+| **Rate Limiting** | High | Throttle login attempts (5/min), API requests (100/min per user) |
+| **HTTP-Only Cookies** | Medium | Store tokens in HTTP-only cookies instead of localStorage |
+| **Token Blacklisting** | Medium | Redis-backed blacklist for logout/password change invalidation |
+| **Security Headers** | Medium | Helmet.js for CSP, HSTS, X-Frame-Options |
+| **Input Sanitization** | Medium | DOMPurify for user-generated content |
+| **Audit Log Encryption** | Low | Encrypt sensitive audit log details at rest |
+
+### Performance & Scaling
+
+| Optimization | Implementation |
+|--------------|----------------|
+| **Permission Caching** | Redis cache for role→permission mappings (TTL: 5min) |
+| **User Permission Cache** | Per-request memoization + Redis for cross-request caching |
+| **Database Indexes** | Compound indexes on `(userId, organizationId)` for membership lookups |
+| **Connection Pooling** | TypeORM connection pool (min: 5, max: 20) |
+| **Query Optimization** | Eager loading for common joins, pagination for large datasets |
+| **CDN for Static Assets** | CloudFront/Cloudflare for Angular bundle distribution |
+
+### Advanced Features Roadmap
+
+| Feature | Complexity | Description |
+|---------|------------|-------------|
+| **Permission Delegation** | Medium | Allow OWNER to delegate specific permissions to users |
+| **Time-Based Access** | Medium | Temporary elevated permissions with expiration |
+| **IP Allowlisting** | Low | Restrict organization access by IP range |
+| **SSO Integration** | High | SAML/OIDC support for enterprise authentication |
+| **Multi-Factor Auth** | Medium | TOTP-based 2FA with backup codes |
+| **API Key Auth** | Low | Service account authentication for integrations |
+| **Webhook Events** | Medium | Real-time notifications for task/org changes |
+| **Export/Import** | Low | Bulk task export (CSV/JSON) and import |
+
+### Deployment Considerations
+
+```bash
+# Production environment variables
+NODE_ENV=production
+JWT_SECRET=<256-bit-random-secret>
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+# Database
+DATABASE_URL=postgresql://user:pass@host:5432/db?ssl=true
+DATABASE_POOL_MIN=5
+DATABASE_POOL_MAX=20
+
+# Redis (for caching/sessions)
+REDIS_URL=redis://host:6379
+
+# Security
+CORS_ORIGINS=https://app.example.com
+RATE_LIMIT_WINDOW=60000
+RATE_LIMIT_MAX=100
+```
 
 ---
 
