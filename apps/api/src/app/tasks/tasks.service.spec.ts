@@ -3,7 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { TasksService, CreateTaskDto, UpdateTaskDto } from './tasks.service';
-import { Task, TaskStatus, Organization } from '@task-manager/data';
+import { Task, TaskStatus, TaskPriority, Organization } from '@task-manager/data';
 
 describe('TasksService', () => {
   let service: TasksService;
@@ -15,10 +15,12 @@ describe('TasksService', () => {
     title: 'Test Task',
     description: 'Test Description',
     status: TaskStatus.TODO,
+    priority: TaskPriority.MEDIUM,
     organizationId: 'org-uuid-1',
     assigneeId: 'user-uuid-1',
     createdAt: new Date(),
     updatedAt: new Date(),
+    deletedAt: null,
     organization: null as unknown as Organization,
     assignee: null,
   };
@@ -42,6 +44,8 @@ describe('TasksService', () => {
       findOne: jest.fn(),
       find: jest.fn(),
       remove: jest.fn(),
+      softRemove: jest.fn(),
+      restore: jest.fn(),
     };
 
     const mockOrgRepo = {

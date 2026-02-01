@@ -1,14 +1,17 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
-import { ITask, TaskStatus, TaskPriority } from '@task-manager/data/frontend';
+import { ITask, TaskStatus, TaskPriority, TaskCategory } from '@task-manager/data/frontend';
 import { OrganizationService } from './organization.service';
+
+export type SortBy = 'date' | 'priority' | 'alpha';
 
 export interface CreateTaskDto {
   title: string;
   description?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  category?: TaskCategory;
   dueDate?: Date;
   assigneeId?: string;
 }
@@ -18,9 +21,18 @@ export interface UpdateTaskDto {
   description?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  category?: TaskCategory;
   dueDate?: Date;
   assigneeId?: string;
 }
+
+// Priority weight for sorting (higher = more urgent)
+const PRIORITY_WEIGHT: Record<TaskPriority, number> = {
+  [TaskPriority.LOW]: 1,
+  [TaskPriority.MEDIUM]: 2,
+  [TaskPriority.HIGH]: 3,
+  [TaskPriority.URGENT]: 4,
+};
 
 @Injectable({
   providedIn: 'root',
@@ -28,6 +40,10 @@ export interface UpdateTaskDto {
 export class TaskService {
   private readonly API_URL = '/api/tasks';
   private readonly organizationService = inject(OrganizationService);
+  private readonly http = inject(HttpClient);
+
+  // Track loaded organization to prevent duplicate loads
+  private loadedOrgId: string | null = null;
 
   // Signals for reactive state management
   private readonly _tasks = signal<ITask[]>([]);
@@ -35,39 +51,149 @@ export class TaskService {
   private readonly _isLoading = signal<boolean>(false);
   private readonly _error = signal<string | null>(null);
 
+  // Search, Filter, Sort signals
+  private readonly _searchQuery = signal<string>('');
+  private readonly _selectedCategory = signal<TaskCategory | null>(null);
+  private readonly _sortBy = signal<SortBy>('date');
+
   // Public readonly signals
   readonly tasks = this._tasks.asReadonly();
   readonly selectedTask = this._selectedTask.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
+  readonly searchQuery = this._searchQuery.asReadonly();
+  readonly selectedCategory = this._selectedCategory.asReadonly();
+  readonly sortBy = this._sortBy.asReadonly();
 
-  // Computed signals for filtered views
+  // Available categories for UI
+  readonly categories = Object.values(TaskCategory);
+
+  constructor() {
+    // Effect to auto-load tasks when organization changes
+    effect(() => {
+      const org = this.organizationService.currentOrg();
+      if (org && org.id !== this.loadedOrgId) {
+        this.loadedOrgId = org.id;
+        this.loadTasksInternal(org.id);
+      } else if (!org) {
+        this.loadedOrgId = null;
+        this._tasks.set([]);
+      }
+    });
+  }
+
+  /**
+   * CRITICAL: Computed signal that applies search, filter, and sort
+   * This is the single source of truth for filtered task display
+   */
+  readonly filteredTasks = computed(() => {
+    let tasks = [...this._tasks()];
+    const query = this._searchQuery().toLowerCase().trim();
+    const category = this._selectedCategory();
+    const sort = this._sortBy();
+
+    // 1. Apply search filter
+    if (query) {
+      tasks = tasks.filter(
+        (t) =>
+          t.title.toLowerCase().includes(query) ||
+          (t.description && t.description.toLowerCase().includes(query))
+      );
+    }
+
+    // 2. Apply category filter
+    if (category) {
+      tasks = tasks.filter((t) => t.category === category);
+    }
+
+    // 3. Apply sorting
+    tasks = this.sortTasks(tasks, sort);
+
+    return tasks;
+  });
+
+  // Computed signals for Kanban columns (derived from filteredTasks)
   readonly todoTasks = computed(() =>
-    this._tasks().filter((t) => t.status === TaskStatus.TODO)
+    this.filteredTasks().filter((t) => t.status === TaskStatus.TODO)
   );
 
   readonly inProgressTasks = computed(() =>
-    this._tasks().filter((t) => t.status === TaskStatus.IN_PROGRESS)
+    this.filteredTasks().filter((t) => t.status === TaskStatus.IN_PROGRESS)
   );
 
   readonly doneTasks = computed(() =>
-    this._tasks().filter((t) => t.status === TaskStatus.DONE)
+    this.filteredTasks().filter((t) => t.status === TaskStatus.DONE)
   );
 
   readonly taskCount = computed(() => this._tasks().length);
+  readonly filteredTaskCount = computed(() => this.filteredTasks().length);
 
-  private readonly http = inject(HttpClient);
+  /**
+   * Sort tasks based on the selected sort option
+   */
+  private sortTasks(tasks: ITask[], sortBy: SortBy): ITask[] {
+    switch (sortBy) {
+      case 'priority':
+        return tasks.sort(
+          (a, b) => PRIORITY_WEIGHT[b.priority] - PRIORITY_WEIGHT[a.priority]
+        );
+      case 'alpha':
+        return tasks.sort((a, b) => a.title.localeCompare(b.title));
+      case 'date':
+      default:
+        return tasks.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+    }
+  }
+
+  /**
+   * Set search query
+   */
+  setSearchQuery(query: string): void {
+    this._searchQuery.set(query);
+  }
+
+  /**
+   * Set category filter
+   */
+  setSelectedCategory(category: TaskCategory | null): void {
+    this._selectedCategory.set(category);
+  }
+
+  /**
+   * Set sort option
+   */
+  setSortBy(sortBy: SortBy): void {
+    this._sortBy.set(sortBy);
+  }
+
+  /**
+   * Clear all filters
+   */
+  clearFilters(): void {
+    this._searchQuery.set('');
+    this._selectedCategory.set(null);
+    this._sortBy.set('date');
+  }
 
   /**
    * Load all tasks for the current organization
+   * This is now primarily called by the effect, but can be called manually to refresh
    */
   loadTasks(): void {
     const orgId = this.organizationService.currentOrg()?.id;
     if (!orgId) {
-      this._tasks.set([]);
-      return;
+      return; // Effect will handle loading when org is ready
     }
+    this.loadTasksInternal(orgId);
+  }
 
+  /**
+   * Internal method to load tasks for a specific organization
+   */
+  private loadTasksInternal(orgId: string): void {
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -136,7 +262,7 @@ export class TaskService {
     this._isLoading.set(true);
     this._error.set(null);
 
-    return this.http.patch<ITask>(`${this.API_URL}/${id}`, dto).pipe(
+    return this.http.put<ITask>(`${this.API_URL}/${id}`, dto).pipe(
       tap((updatedTask) => {
         this._tasks.update((tasks) =>
           tasks.map((t) => (t.id === id ? updatedTask : t))
@@ -197,5 +323,34 @@ export class TaskService {
   clearTasks(): void {
     this._tasks.set([]);
     this._selectedTask.set(null);
+  }
+
+  /**
+   * Optimistically update task status (for drag-and-drop)
+   * Returns the previous task state for rollback on API failure
+   */
+  optimisticUpdateStatus(taskId: string, newStatus: TaskStatus): ITask | null {
+    const currentTasks = this._tasks();
+    const taskIndex = currentTasks.findIndex((t) => t.id === taskId);
+    
+    if (taskIndex === -1) return null;
+    
+    const previousTask = { ...currentTasks[taskIndex] };
+    
+    // Optimistically update the local state
+    this._tasks.update((tasks) =>
+      tasks.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+    );
+    
+    return previousTask;
+  }
+
+  /**
+   * Rollback a task to its previous state (on API failure)
+   */
+  rollbackTask(previousTask: ITask): void {
+    this._tasks.update((tasks) =>
+      tasks.map((t) => (t.id === previousTask.id ? previousTask : t))
+    );
   }
 }

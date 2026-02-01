@@ -6,7 +6,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TaskStatus } from '@task-manager/data';
+import { TaskStatus, TaskPriority, TaskCategory } from '@task-manager/data';
 
 export class CreateTaskDto {
   @ApiProperty({
@@ -52,4 +52,24 @@ export class CreateTaskDto {
   @IsOptional()
   @IsEnum(TaskStatus)
   status?: TaskStatus;
+
+  @ApiPropertyOptional({
+    description: 'The priority of the task',
+    enum: TaskPriority,
+    example: TaskPriority.MEDIUM,
+    default: TaskPriority.MEDIUM,
+  })
+  @IsOptional()
+  @IsEnum(TaskPriority)
+  priority?: TaskPriority;
+
+  @ApiPropertyOptional({
+    description: 'The category of the task',
+    enum: TaskCategory,
+    example: TaskCategory.GENERAL,
+    default: TaskCategory.GENERAL,
+  })
+  @IsOptional()
+  @IsEnum(TaskCategory)
+  category?: TaskCategory;
 }

@@ -35,18 +35,33 @@
 
     <!-- Navigation Actions -->
     <div class="flex items-center gap-4">
-      <a
-        routerLink="/login"
-        class="rounded-lg px-4 py-2 text-sm font-medium text-slate-300 transition-all duration-300 hover:text-white"
-      >
-        Sign In
-      </a>
-      <a
-        routerLink="/register"
-        class="rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all duration-300 hover:from-violet-500 hover:to-indigo-500 hover:shadow-violet-500/40"
-      >
-        Get Started Free
-      </a>
+      @if (isAuthenticated()) {
+        <a
+          routerLink="/dashboard"
+          class="rounded-lg px-4 py-2 text-sm font-medium text-slate-300 transition-all duration-300 hover:text-white"
+        >
+          Dashboard
+        </a>
+        <button
+          (click)="logout()"
+          class="rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all duration-300 hover:from-violet-500 hover:to-indigo-500 hover:shadow-violet-500/40"
+        >
+          Logout
+        </button>
+      } @else {
+        <a
+          routerLink="/login"
+          class="rounded-lg px-4 py-2 text-sm font-medium text-slate-300 transition-all duration-300 hover:text-white"
+        >
+          Sign In
+        </a>
+        <a
+          routerLink="/register"
+          class="rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all duration-300 hover:from-violet-500 hover:to-indigo-500 hover:shadow-violet-500/40"
+        >
+          Get Started Free
+        </a>
+      }
     </div>
   </nav>
 </header>

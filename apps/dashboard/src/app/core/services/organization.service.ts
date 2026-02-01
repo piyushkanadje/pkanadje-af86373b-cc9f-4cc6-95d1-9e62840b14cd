@@ -44,7 +44,10 @@ export class OrganizationService {
     effect(() => {
       const user = this.authService.currentUser();
       if (user && user.organizationMemberships.length > 0) {
-        this.initializeOrganization(user.organizationMemberships);
+        // Only initialize if no organization is currently set
+        if (!this._currentOrg()) {
+          this.initializeOrganization(user.organizationMemberships);
+        }
       } else if (!user) {
         // Clear org state on logout
         this._currentOrg.set(null);

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 /**
  * ============================================================================
@@ -59,4 +60,11 @@ import { RouterLink } from '@angular/router';
 })
 export class LandingComponent {
   readonly currentYear = new Date().getFullYear();
+  
+  private readonly authService = inject(AuthService);
+  readonly isAuthenticated = this.authService.isAuthenticated;
+  
+  logout(): void {
+    this.authService.logout();
+  }
 }

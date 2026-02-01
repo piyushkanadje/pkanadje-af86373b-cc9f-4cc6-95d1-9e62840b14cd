@@ -5,21 +5,28 @@ import {
   FormGroup,
   ReactiveFormsModule,
   Validators,
+  FormsModule,
 } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
+import {
+  CdkDragDrop,
+  DragDropModule,
+  moveItemInArray,
+  transferArrayItem,
+} from '@angular/cdk/drag-drop';
 import {
   AuthService,
   TaskService,
   OrganizationService,
   ShortcutService,
 } from '../../core/services';
-import type { CreateTaskDto } from '../../core/services';
-import { TaskStatus, TaskPriority, ITask, OrganizationRole } from '@task-manager/data/frontend';
+import type { CreateTaskDto, SortBy } from '../../core/services';
+import { TaskStatus, TaskPriority, TaskCategory, ITask, OrganizationRole } from '@task-manager/data/frontend';
 
 @Component({
   selector: 'app-tasks',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule],
   templateUrl: './tasks.component.html',
   styleUrls: ['./tasks.component.scss'],
 })
@@ -33,9 +40,13 @@ export class TasksComponent implements OnInit, OnDestroy {
 
   readonly TaskStatus = TaskStatus;
   readonly TaskPriority = TaskPriority;
+  readonly TaskCategory = TaskCategory;
 
   showCreateModal = signal(false);
   editingTask = signal<ITask | null>(null);
+
+  // Search input binding (two-way with signal)
+  searchInput = '';
 
   // Computed signal for role-based visibility
   readonly canCreateTasks = computed(() => {
@@ -56,6 +67,7 @@ export class TasksComponent implements OnInit, OnDestroy {
     description: [''],
     status: [TaskStatus.TODO],
     priority: [TaskPriority.MEDIUM],
+    category: [TaskCategory.GENERAL],
   });
 
   ngOnInit(): void {
@@ -94,6 +106,7 @@ export class TasksComponent implements OnInit, OnDestroy {
       description: task.description || '',
       status: task.status,
       priority: task.priority,
+      category: task.category || TaskCategory.GENERAL,
     });
     this.showCreateModal.set(true);
   }
@@ -104,6 +117,7 @@ export class TasksComponent implements OnInit, OnDestroy {
     this.taskForm.reset({
       status: TaskStatus.TODO,
       priority: TaskPriority.MEDIUM,
+      category: TaskCategory.GENERAL,
     });
   }
 
@@ -125,6 +139,7 @@ export class TasksComponent implements OnInit, OnDestroy {
         description: formValue.description || undefined,
         status: formValue.status,
         priority: formValue.priority,
+        category: formValue.category,
       };
 
       this.taskService.createTask(dto).subscribe({
@@ -147,15 +162,95 @@ export class TasksComponent implements OnInit, OnDestroy {
   getPriorityClass(priority: TaskPriority): string {
     switch (priority) {
       case TaskPriority.LOW:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
       case TaskPriority.MEDIUM:
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
       case TaskPriority.HIGH:
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
       case TaskPriority.URGENT:
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
+  }
+
+  getCategoryClass(category: TaskCategory): string {
+    switch (category) {
+      case TaskCategory.WORK:
+        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300';
+      case TaskCategory.PERSONAL:
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case TaskCategory.URGENT:
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      case TaskCategory.GENERAL:
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+    }
+  }
+
+  getCategoryIcon(category: TaskCategory): string {
+    switch (category) {
+      case TaskCategory.WORK:
+        return '💼';
+      case TaskCategory.PERSONAL:
+        return '🏠';
+      case TaskCategory.URGENT:
+        return '🔥';
+      case TaskCategory.GENERAL:
+      default:
+        return '📋';
+    }
+  }
+
+  // Search handler
+  onSearchChange(query: string): void {
+    this.taskService.setSearchQuery(query);
+  }
+
+  // Category filter handler
+  onCategoryChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.taskService.setSelectedCategory(value ? value as TaskCategory : null);
+  }
+
+  // Sort handler
+  onSortChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value as SortBy;
+    this.taskService.setSortBy(value);
+  }
+
+  // Clear all filters
+  clearFilters(): void {
+    this.searchInput = '';
+    this.taskService.clearFilters();
+  }
+
+  /**
+   * Drag-and-Drop Handler
+   * Handles moving tasks between Kanban columns (status change)
+   */
+  onDrop(event: CdkDragDrop<ITask[]>, newStatus: TaskStatus): void {
+    if (!this.canEditTasks()) return;
+
+    const task = event.item.data as ITask;
+    
+    // Same container - just reordering within column (no status change needed)
+    if (event.previousContainer === event.container) {
+      // Optional: implement reordering within the same column
+      return;
+    }
+
+    // Different container - status change
+    const previousTask = this.taskService.optimisticUpdateStatus(task.id, newStatus);
+    
+    if (!previousTask) return;
+
+    // Make API call to persist the change
+    this.taskService.updateTask(task.id, { status: newStatus }).subscribe({
+      error: () => {
+        // Rollback on failure
+        this.taskService.rollbackTask(previousTask);
+      },
+    });
   }
 }

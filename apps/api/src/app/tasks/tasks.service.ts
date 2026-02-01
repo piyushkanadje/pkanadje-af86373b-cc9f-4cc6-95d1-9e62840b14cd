@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, IsNull } from 'typeorm';
-import { Task, TaskStatus, Organization } from '@task-manager/data';
+import { Task, TaskStatus, TaskPriority, TaskCategory, Organization } from '@task-manager/data';
 
 export interface CreateTaskDto {
   title: string;
@@ -9,6 +9,8 @@ export interface CreateTaskDto {
   organizationId: string;
   assigneeId?: string;
   status?: TaskStatus;
+  priority?: TaskPriority;
+  category?: TaskCategory;
 }
 
 export interface UpdateTaskDto {
@@ -16,6 +18,8 @@ export interface UpdateTaskDto {
   description?: string;
   assigneeId?: string;
   status?: TaskStatus;
+  priority?: TaskPriority;
+  category?: TaskCategory;
 }
 
 @Injectable()
@@ -44,6 +48,8 @@ export class TasksService {
       organizationId: dto.organizationId,
       assigneeId: dto.assigneeId || createdById,
       status: dto.status || TaskStatus.TODO,
+      priority: dto.priority || TaskPriority.MEDIUM,
+      category: dto.category || TaskCategory.GENERAL,
     });
 
     return this.taskRepository.save(task);
@@ -80,6 +86,12 @@ export class TasksService {
     }
     if (dto.status !== undefined) {
       task.status = dto.status;
+    }
+    if (dto.priority !== undefined) {
+      task.priority = dto.priority;
+    }
+    if (dto.category !== undefined) {
+      task.category = dto.category;
     }
 
     return this.taskRepository.save(task);
