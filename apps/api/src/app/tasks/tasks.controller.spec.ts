@@ -5,7 +5,7 @@ import { TasksService } from './tasks.service';
 import { AuditInterceptor } from '../audit/audit.interceptor';
 import { AuditService } from '../audit/audit.service';
 import { JwtAuthGuard, OrgRolesGuard } from '@task-manager/auth';
-import { OrganizationRole, Organization, Task, TaskStatus } from '@task-manager/data';
+import { OrganizationRole, Organization, Task, TaskStatus, TaskPriority } from '@task-manager/data';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string; email: string };
@@ -22,10 +22,12 @@ describe('TasksController', () => {
     title: 'Test Task',
     description: 'Test Description',
     status: TaskStatus.TODO,
+    priority: TaskPriority.MEDIUM,
     organizationId: 'org-uuid-1',
     assigneeId: 'user-uuid-1',
     createdAt: new Date(),
     updatedAt: new Date(),
+    deletedAt: null,
     organization: null as unknown as Organization,
     assignee: null,
   };

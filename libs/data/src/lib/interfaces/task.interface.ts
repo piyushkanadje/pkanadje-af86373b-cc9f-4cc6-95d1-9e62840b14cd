@@ -1,5 +1,6 @@
 import { TaskStatus } from '../enums/task-status.enum';
 import { TaskPriority } from '../enums/task-priority.enum';
+import { TaskCategory } from '../enums/task-category.enum';
 
 export interface ITask {
   id: string;
@@ -7,6 +8,7 @@ export interface ITask {
   description: string | null;
   status: TaskStatus;
   priority: TaskPriority;
+  category: TaskCategory;
   assigneeId: string | null;
   organizationId: string;
   createdAt: Date;

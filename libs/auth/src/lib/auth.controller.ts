@@ -5,6 +5,7 @@ import {
   UseGuards,
   Request,
   Get,
+  Param,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -15,6 +16,9 @@ import { OrgRolesGuard, OrgRoles } from './guards/org-roles.guard';
 import { OrganizationRole } from '@task-manager/data';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string; email: string };
@@ -43,7 +47,12 @@ export class AuthController {
    */
   @Post('register')
   async register(@Body() registerDto: RegisterDto): Promise<LoginResponse> {
-    return this.authService.register(registerDto.email, registerDto.password);
+    return this.authService.register(
+      registerDto.email,
+      registerDto.password,
+      registerDto.firstName,
+      registerDto.lastName
+    );
   }
 
   /**
@@ -59,12 +68,77 @@ export class AuthController {
     );
     return {
       ...user,
-      organizations: organizations.map((uo) => ({
-        id: uo.organizationId,
-        name: uo.organization?.name,
+      organizationMemberships: organizations.map((uo) => ({
+        organizationId: uo.organizationId,
+        organizationName: uo.organization?.name,
         role: uo.role,
       })),
     };
+  }
+
+  /**
+   * Change password for authenticated user
+   * POST /auth/change-password
+   */
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @Request() req: AuthenticatedRequest,
+    @Body() changePasswordDto: ChangePasswordDto
+  ) {
+    return this.authService.changePassword(
+      req.user.id,
+      changePasswordDto.currentPassword,
+      changePasswordDto.newPassword
+    );
+  }
+
+  /**
+   * Request password reset - sends email with reset link
+   * POST /auth/forgot-password
+   */
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    const token = await this.authService.generatePasswordResetToken(
+      forgotPasswordDto.email
+    );
+
+    // Always return success to prevent email enumeration
+    // In production, send email here if token exists
+    if (token) {
+      // TODO: Send email with reset link
+      // For now, we'll log it (remove in production)
+      console.log(`Password reset token for ${forgotPasswordDto.email}: ${token}`);
+    }
+
+    return {
+      message:
+        'If an account exists with this email, you will receive a password reset link.',
+    };
+  }
+
+  /**
+   * Reset password using token
+   * POST /auth/reset-password
+   */
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.newPassword
+    );
+  }
+
+  /**
+   * Validate reset token (check if it's valid before showing reset form)
+   * GET /auth/validate-reset-token/:token
+   */
+  @Get('validate-reset-token/:token')
+  async validateResetToken(@Param('token') token: string) {
+    return this.authService.validatePasswordResetToken(token);
   }
 
   /**

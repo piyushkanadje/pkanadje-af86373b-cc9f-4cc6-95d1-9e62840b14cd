@@ -6,8 +6,23 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- 
+      FOUC Prevention Script
+      Applies theme class BEFORE any CSS loads to prevent flash of wrong theme.
+      Runs synchronously and blocks render until theme is applied.
+    -->
+    <script>
+      (function() {
+        const stored = localStorage.getItem('theme-preference');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = stored === 'dark' || (stored === 'system' && systemDark) || (!stored && systemDark);
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
   </head>
-  <body>
+  <body class="bg-white dark:bg-gray-900 transition-colors">
     <app-root></app-root>
   </body>
 </html>

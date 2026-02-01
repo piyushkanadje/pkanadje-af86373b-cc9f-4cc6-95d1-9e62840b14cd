@@ -1,0 +1,55 @@
+# Docker Compose for Local Development
+# Usage: docker compose -f docker-compose.local.yml up --build
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: task_manager_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: task_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d task_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: task_manager_api
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: admin
+      DATABASE_PASSWORD: password123
+      DATABASE_NAME: task_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      TYPEORM_SYNCHRONIZE: "false"
+      TYPEORM_LOGGING: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: task_manager_dashboard
+    ports:
+      - "4200:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  pg_data:

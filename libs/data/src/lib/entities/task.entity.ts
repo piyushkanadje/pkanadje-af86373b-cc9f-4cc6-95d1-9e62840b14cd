@@ -13,6 +13,7 @@ import { Organization } from './organization.entity';
 import { User } from './user.entity';
 import { TaskStatus } from '../enums/task-status.enum';
 import { TaskPriority } from '../enums/task-priority.enum';
+import { TaskCategory } from '../enums/task-category.enum';
 
 @Entity('tasks')
 @Index('idx_task_org', ['organizationId'])
@@ -39,6 +40,13 @@ export class Task {
     default: TaskPriority.MEDIUM,
   })
   priority!: TaskPriority;
+
+  @Column({
+    type: 'enum',
+    enum: TaskCategory,
+    default: TaskCategory.GENERAL,
+  })
+  category!: TaskCategory;
 
   @Column({ name: 'assignee_id', type: 'uuid', nullable: true })
   assigneeId!: string | null;

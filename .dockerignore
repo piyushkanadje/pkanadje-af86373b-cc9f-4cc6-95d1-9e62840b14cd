@@ -1,0 +1,33 @@
+# Docker
+.dockerignore
+Dockerfile*
+docker-compose*.yml
+
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+tmp
+.angular
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Git
+.git
+.gitignore
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+*.log
+*.md
+!README.md
+.env*
+.nx

@@ -12,6 +12,8 @@ export class AuditController {
   @UseGuards(JwtAuthGuard, OrgRolesGuard)
   @OrgRoles(OrganizationRole.OWNER, OrganizationRole.ADMIN)
   async findAll(@Query() query: QueryAuditLogDto) {
-    return this.auditService.findByOrg(query.organizationId);
+    const page = query.page ? parseInt(query.page, 10) : 1;
+    const limit = query.limit ? parseInt(query.limit, 10) : 10;
+    return this.auditService.findByOrg(query.organizationId, page, limit);
   }
 }

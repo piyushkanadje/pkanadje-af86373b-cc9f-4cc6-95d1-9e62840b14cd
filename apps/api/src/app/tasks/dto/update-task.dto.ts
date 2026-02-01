@@ -5,8 +5,8 @@ import {
   IsEnum,
   MaxLength,
 } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { TaskStatus } from '@task-manager/data';
+import { ApiPropertyOptional, ApiHideProperty } from '@nestjs/swagger';
+import { TaskStatus, TaskPriority, TaskCategory } from '@task-manager/data';
 
 export class UpdateTaskDto {
   @ApiPropertyOptional({
@@ -44,4 +44,31 @@ export class UpdateTaskDto {
   @IsOptional()
   @IsEnum(TaskStatus)
   status?: TaskStatus;
+
+  @ApiPropertyOptional({
+    description: 'The updated priority of the task',
+    enum: TaskPriority,
+    example: TaskPriority.HIGH,
+  })
+  @IsOptional()
+  @IsEnum(TaskPriority)
+  priority?: TaskPriority;
+
+  @ApiPropertyOptional({
+    description: 'The updated category of the task',
+    enum: TaskCategory,
+    example: TaskCategory.WORK,
+  })
+  @IsOptional()
+  @IsEnum(TaskCategory)
+  category?: TaskCategory;
+
+  /**
+   * This field is injected by TaskOrgGuard for authorization purposes.
+   * It is not user-editable and will be ignored during updates.
+   */
+  @ApiHideProperty()
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
 }

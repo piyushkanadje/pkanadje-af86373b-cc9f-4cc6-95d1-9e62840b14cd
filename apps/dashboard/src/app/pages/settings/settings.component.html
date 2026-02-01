@@ -1,76 +1,29 @@
-<div class="min-h-screen bg-gray-100">
-  <!-- Navigation -->
-  <nav class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex">
-          <div class="flex-shrink-0 flex items-center">
-            <span class="text-xl font-bold text-indigo-600">Task Manager</span>
-          </div>
-          <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-            <a
-              routerLink="/dashboard"
-              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-            >
-              Dashboard
-            </a>
-            <a
-              routerLink="/tasks"
-              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-            >
-              Tasks
-            </a>
-            <a
-              routerLink="/organizations"
-              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-            >
-              Organizations
-            </a>
-            <a
-              routerLink="/settings"
-              class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-            >
-              Settings
-            </a>
-          </div>
-        </div>
-        <div class="flex items-center space-x-4">
-          <button
-            (click)="authService.logout()"
-            class="text-gray-500 hover:text-gray-700 text-sm font-medium"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    </div>
-  </nav>
-
+<div class="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
   <!-- Main content -->
   <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <div class="px-4 sm:px-0">
-      <h1 class="text-2xl font-semibold text-gray-900">Settings</h1>
-      <p class="mt-1 text-sm text-gray-600">Manage your account settings and preferences</p>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Settings</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Manage your account settings and preferences</p>
     </div>
 
     <div class="mt-6">
       <!-- Profile Section -->
-      <div class="bg-white shadow sm:rounded-lg">
+      <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg">
         <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Profile Information</h3>
-          <div class="mt-2 max-w-xl text-sm text-gray-500">
+          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Profile Information</h3>
+          <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
             <p>Update your account profile information.</p>
           </div>
 
           @if (authService.currentUser()) {
             <div class="mt-5 space-y-4">
               <div>
-                <span class="block text-sm font-medium text-gray-700">Email</span>
-                <p class="mt-1 text-sm text-gray-900">{{ authService.currentUser()?.email }}</p>
+                <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</span>
+                <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ authService.currentUser()?.email }}</p>
               </div>
               <div>
-                <span class="block text-sm font-medium text-gray-700">Name</span>
-                <p class="mt-1 text-sm text-gray-900">
+                <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</span>
+                <p class="mt-1 text-sm text-gray-900 dark:text-white">
                   {{ authService.currentUser()?.firstName }} {{ authService.currentUser()?.lastName }}
                 </p>
               </div>
@@ -80,53 +33,125 @@
       </div>
 
       <!-- Password Section -->
-      <div class="mt-6 bg-white shadow sm:rounded-lg">
+      <div class="mt-6 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
         <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Change Password</h3>
-          <div class="mt-2 max-w-xl text-sm text-gray-500">
+          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Change Password</h3>
+          <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
             <p>Ensure your account is using a strong password to stay secure.</p>
           </div>
-          <form [formGroup]="passwordForm" (ngSubmit)="onPasswordSubmit()" class="mt-5 space-y-4">
+
+          <!-- Success Message -->
+          @if (passwordChangeSuccess()) {
+            <div class="mt-4 rounded-md bg-green-50 dark:bg-green-900/30 p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                    Password changed successfully!
+                  </p>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Error Message -->
+          @if (passwordChangeError()) {
+            <div class="mt-4 rounded-md bg-red-50 dark:bg-red-900/30 p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-red-800 dark:text-red-200">
+                    {{ passwordChangeError() }}
+                  </p>
+                </div>
+                <div class="ml-auto pl-3">
+                  <button
+                    type="button"
+                    (click)="clearPasswordError()"
+                    class="inline-flex text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                  >
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          <form [formGroup]="passwordForm" (ngSubmit)="onPasswordSubmit()" class="mt-5 space-y-4 max-w-md">
             <div>
-              <label for="currentPassword" class="block text-sm font-medium text-gray-700">
+              <label for="currentPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Current Password
               </label>
               <input
                 type="password"
                 id="currentPassword"
                 formControlName="currentPassword"
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                (focus)="clearPasswordError()"
+                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 sm:text-sm"
               />
+              @if (passwordForm.get('currentPassword')?.touched && passwordForm.get('currentPassword')?.errors?.['required']) {
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">Current password is required</p>
+              }
             </div>
             <div>
-              <label for="newPassword" class="block text-sm font-medium text-gray-700">
+              <label for="newPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 New Password
               </label>
               <input
                 type="password"
                 id="newPassword"
                 formControlName="newPassword"
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 sm:text-sm"
               />
+              @if (passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.errors) {
+                @if (passwordForm.get('newPassword')?.errors?.['required']) {
+                  <p class="mt-1 text-sm text-red-600 dark:text-red-400">New password is required</p>
+                } @else if (passwordForm.get('newPassword')?.errors?.['minlength']) {
+                  <p class="mt-1 text-sm text-red-600 dark:text-red-400">Password must be at least 8 characters</p>
+                } @else if (passwordForm.get('newPassword')?.errors?.['pattern']) {
+                  <p class="mt-1 text-sm text-red-600 dark:text-red-400">Password must contain uppercase, lowercase, and a number</p>
+                }
+              }
             </div>
             <div>
-              <label for="confirmPassword" class="block text-sm font-medium text-gray-700">
+              <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Confirm New Password
               </label>
               <input
                 type="password"
                 id="confirmPassword"
                 formControlName="confirmPassword"
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 sm:text-sm"
               />
+              @if (passwordForm.get('confirmPassword')?.touched && passwordForm.get('confirmPassword')?.errors?.['passwordMismatch']) {
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">Passwords do not match</p>
+              }
             </div>
             <div>
               <button
                 type="submit"
-                [disabled]="passwordForm.invalid"
-                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                [disabled]="passwordForm.invalid || isChangingPassword()"
+                class="inline-flex justify-center items-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Update Password
+                @if (isChangingPassword()) {
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Updating...
+                } @else {
+                  Update Password
+                }
               </button>
             </div>
           </form>
@@ -134,10 +159,10 @@
       </div>
 
       <!-- Notifications Section -->
-      <div class="mt-6 bg-white shadow sm:rounded-lg">
+      <div class="mt-6 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
         <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Notification Preferences</h3>
-          <div class="mt-2 max-w-xl text-sm text-gray-500">
+          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Notification Preferences</h3>
+          <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
             <p>Manage how you receive notifications.</p>
           </div>
           <div class="mt-5 space-y-4">
@@ -147,12 +172,12 @@
                   id="emailNotifications"
                   type="checkbox"
                   [(ngModel)]="emailNotifications"
-                  class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  class="focus:ring-indigo-500 dark:focus:ring-indigo-400 h-4 w-4 text-indigo-600 dark:text-indigo-500 border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700"
                 />
               </div>
               <div class="ml-3 text-sm">
-                <label for="emailNotifications" class="font-medium text-gray-700">Email notifications</label>
-                <p class="text-gray-500">Receive email updates about task assignments and changes.</p>
+                <label for="emailNotifications" class="font-medium text-gray-700 dark:text-gray-300">Email notifications</label>
+                <p class="text-gray-500 dark:text-gray-400">Receive email updates about task assignments and changes.</p>
               </div>
             </div>
             <div class="flex items-start">
@@ -161,12 +186,12 @@
                   id="pushNotifications"
                   type="checkbox"
                   [(ngModel)]="pushNotifications"
-                  class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  class="focus:ring-indigo-500 dark:focus:ring-indigo-400 h-4 w-4 text-indigo-600 dark:text-indigo-500 border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700"
                 />
               </div>
               <div class="ml-3 text-sm">
-                <label for="pushNotifications" class="font-medium text-gray-700">Push notifications</label>
-                <p class="text-gray-500">Receive push notifications in your browser.</p>
+                <label for="pushNotifications" class="font-medium text-gray-700 dark:text-gray-300">Push notifications</label>
+                <p class="text-gray-500 dark:text-gray-400">Receive push notifications in your browser.</p>
               </div>
             </div>
           </div>
@@ -174,16 +199,16 @@
       </div>
 
       <!-- Danger Zone -->
-      <div class="mt-6 bg-white shadow sm:rounded-lg">
+      <div class="mt-6 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
         <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-lg leading-6 font-medium text-red-600">Danger Zone</h3>
-          <div class="mt-2 max-w-xl text-sm text-gray-500">
+          <h3 class="text-lg leading-6 font-medium text-red-600 dark:text-red-400">Danger Zone</h3>
+          <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
             <p>Permanently delete your account and all associated data.</p>
           </div>
           <div class="mt-5">
             <button
               type="button"
-              class="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm"
+              class="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800 sm:text-sm"
             >
               Delete Account
             </button>

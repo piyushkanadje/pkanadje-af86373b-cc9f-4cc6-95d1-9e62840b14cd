@@ -2,10 +2,13 @@ import { Route } from '@angular/router';
 import { authGuard, noAuthGuard } from './core/guards';
 
 export const appRoutes: Route[] = [
-  // Default redirect
+  // Landing page (public marketing page)
   {
     path: '',
-    redirectTo: 'dashboard',
+    loadComponent: () =>
+      import('./pages/landing/landing.component').then(
+        (m) => m.LandingComponent
+      ),
     pathMatch: 'full',
   },
 
@@ -21,6 +24,30 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('./pages/register/register.component').then(
         (m) => m.RegisterComponent
+      ),
+    canActivate: [noAuthGuard],
+  },
+  {
+    path: 'accept-invite',
+    loadComponent: () =>
+      import('./pages/accept-invite/accept-invite.component').then(
+        (m) => m.AcceptInviteComponent
+      ),
+    canActivate: [noAuthGuard],
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./pages/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent
+      ),
+    canActivate: [noAuthGuard],
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./pages/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent
       ),
     canActivate: [noAuthGuard],
   },
@@ -51,6 +78,13 @@ export const appRoutes: Route[] = [
         loadComponent: () =>
           import('./pages/organizations/organizations.component').then(
             (m) => m.OrganizationsComponent
+          ),
+      },
+      {
+        path: 'analytics',
+        loadComponent: () =>
+          import('./pages/analytics/analytics.component').then(
+            (m) => m.AnalyticsComponent
           ),
       },
       {

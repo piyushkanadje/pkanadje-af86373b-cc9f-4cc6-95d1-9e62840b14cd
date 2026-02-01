@@ -1,10 +1,10 @@
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
-import { User } from '../../libs/data/src/lib/entities/user.entity';
-import { Organization } from '../../libs/data/src/lib/entities/organization.entity';
-import { UserOrganization } from '../../libs/data/src/lib/entities/user-organization.entity';
-import { Task } from '../../libs/data/src/lib/entities/task.entity';
-import { AuditLog } from '../../libs/data/src/lib/entities/audit-log.entity';
+import { User } from '@task-manager/data';
+import { Organization } from '@task-manager/data';
+import { UserOrganization } from '@task-manager/data';
+import { Task } from '@task-manager/data';
+import { AuditLog } from '@task-manager/data'; 
 
 config({ path: '.env' });
 

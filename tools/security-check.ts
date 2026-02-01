@@ -17,7 +17,7 @@ import { Client } from 'pg';
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'http://localhost:3000/api/v1';
 const TEST_TIMESTAMP = Date.now();
 
 const ATTACKER_EMAIL = `attacker-${TEST_TIMESTAMP}@hack.com`;

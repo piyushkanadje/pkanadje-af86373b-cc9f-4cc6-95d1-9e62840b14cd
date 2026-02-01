@@ -196,6 +196,7 @@ export class InvitationsService {
   async getInvitationByToken(token: string): Promise<{
     id: string;
     email: string;
+    token: string;
     role: OrganizationRole;
     status: InvitationStatus;
     organization: { id: string; name: string };
@@ -217,6 +218,7 @@ export class InvitationsService {
     return {
       id: invitation.id,
       email: invitation.email,
+      token: invitation.token,
       role: invitation.role,
       status: invitation.status,
       organization: {

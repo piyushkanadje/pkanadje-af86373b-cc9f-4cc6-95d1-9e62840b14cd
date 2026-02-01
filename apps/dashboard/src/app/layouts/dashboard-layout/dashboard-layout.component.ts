@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { AuthService, OrganizationService } from '../../core/services';
+import { Subject, takeUntil } from 'rxjs';
+import { AuthService, OrganizationService, ThemeService, ShortcutService } from '../../core/services';
 import { OrganizationRole } from '@task-manager/data/frontend';
 
 @Component({
@@ -11,9 +12,13 @@ import { OrganizationRole } from '@task-manager/data/frontend';
   templateUrl: './dashboard-layout.component.html',
   styleUrls: ['./dashboard-layout.component.scss'],
 })
-export class DashboardLayoutComponent {
+export class DashboardLayoutComponent implements OnInit, OnDestroy {
   readonly authService = inject(AuthService);
   readonly organizationService = inject(OrganizationService);
+  readonly themeService = inject(ThemeService);
+  readonly shortcutService = inject(ShortcutService);
+  
+  private readonly destroy$ = new Subject<void>();
 
   // Navigation items
   readonly navItems = [
@@ -25,6 +30,32 @@ export class DashboardLayoutComponent {
 
   // Mobile sidebar state
   sidebarOpen = false;
+  
+  // Keyboard shortcuts help modal
+  showShortcutsHelp = signal(false);
+
+  ngOnInit(): void {
+    // Listen for help shortcut (?)
+    this.shortcutService.help$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.showShortcutsHelp.update(v => !v);
+      });
+      
+    // Listen for Escape to close help
+    this.shortcutService.escape$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.showShortcutsHelp()) {
+          this.showShortcutsHelp.set(false);
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;
@@ -32,6 +63,10 @@ export class DashboardLayoutComponent {
 
   closeSidebar(): void {
     this.sidebarOpen = false;
+  }
+  
+  toggleTheme(): void {
+    this.themeService.cycleThemeMode();
   }
 
   logout(): void {

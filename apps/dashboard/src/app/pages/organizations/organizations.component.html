@@ -1,59 +1,12 @@
-<div class="min-h-screen bg-gray-100">
-  <!-- Navigation -->
-  <nav class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex">
-          <div class="flex-shrink-0 flex items-center">
-            <span class="text-xl font-bold text-indigo-600">Task Manager</span>
-          </div>
-          <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-            <a
-              routerLink="/dashboard"
-              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-            >
-              Dashboard
-            </a>
-            <a
-              routerLink="/tasks"
-              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-            >
-              Tasks
-            </a>
-            <a
-              routerLink="/organizations"
-              class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-            >
-              Organizations
-            </a>
-            <a
-              routerLink="/audit-log"
-              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-            >
-              Audit Log
-            </a>
-          </div>
-        </div>
-        <div class="flex items-center space-x-4">
-          <button
-            (click)="authService.logout()"
-            class="text-gray-500 hover:text-gray-700 text-sm font-medium"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    </div>
-  </nav>
-
+<div class="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
   <!-- Main content -->
   <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <div class="px-4 sm:px-0">
       <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-semibold text-gray-900">Organizations</h1>
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Organizations</h1>
         <button
           (click)="showCreateModal.set(true)"
-          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900"
         >
           <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -64,20 +17,20 @@
     </div>
 
     @if (organizationService.error()) {
-      <div class="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+      <div class="mt-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded relative" role="alert">
         <span class="block sm:inline">{{ organizationService.error() }}</span>
       </div>
     }
 
     <!-- Organizations List -->
     <div class="mt-6">
-      <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <ul class="divide-y divide-gray-200">
+      <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+        <ul class="divide-y divide-gray-200 dark:divide-gray-700">
           @for (membership of authService.userOrganizations(); track membership.organizationId) {
             <li>
               <button
                 type="button"
-                class="w-full text-left px-4 py-4 flex items-center sm:px-6 hover:bg-gray-50 cursor-pointer"
+                class="w-full text-left px-4 py-4 flex items-center sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                 (click)="selectOrganization(membership)"
               >
                 <div class="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
@@ -85,34 +38,39 @@
                     <div class="flex-shrink-0">
                       <div
                         class="h-12 w-12 rounded-lg flex items-center justify-center text-white font-bold text-lg"
-                        [ngClass]="organizationService.currentOrg()?.id === membership.organizationId ? 'bg-indigo-600' : 'bg-gray-400'"
+                        [ngClass]="organizationService.currentOrg()?.id === membership.organizationId ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-gray-400 dark:bg-gray-600'"
                       >
                         {{ membership.organizationName.charAt(0).toUpperCase() }}
                       </div>
                     </div>
                     <div class="ml-4">
-                      <p class="font-medium text-indigo-600 truncate">
+                      <p class="font-medium text-indigo-600 dark:text-indigo-400 truncate">
                         {{ membership.organizationName }}
                       </p>
-                      <p class="mt-1 text-sm text-gray-500">
-                        Role: {{ membership.role }}
+                      <p class="mt-1 flex items-center gap-2">
+                        <span
+                          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                          [ngClass]="getRoleBadgeClass(membership.role)"
+                        >
+                          {{ membership.role }}
+                        </span>
                       </p>
                     </div>
                   </div>
                 </div>
                 <div class="ml-5 flex-shrink-0">
                   @if (organizationService.currentOrg()?.id === membership.organizationId) {
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
                       Active
                     </span>
                   } @else {
-                    <span class="text-sm text-gray-500">Click to switch</span>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Click to switch</span>
                   }
                 </div>
               </button>
             </li>
           } @empty {
-            <li class="px-4 py-8 text-center text-gray-500">
+            <li class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
               <p>No organizations yet. Create one to get started!</p>
             </li>
           }
@@ -123,21 +81,163 @@
     <!-- Current Organization Details -->
     @if (organizationService.currentOrg()) {
       <div class="mt-8">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">Current Organization</h2>
-        <div class="bg-white shadow sm:rounded-lg">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-medium text-gray-900 dark:text-white">Current Organization</h2>
+          <div class="flex gap-2">
+            @if (canDelete()) {
+              <button
+                (click)="openDeleteConfirm()"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-900"
+              >
+                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Delete
+              </button>
+            }
+            @if (canInvite()) {
+              <button
+                (click)="openInviteModal()"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-900"
+              >
+                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                Invite User
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg">
           <div class="px-4 py-5 sm:p-6">
             <div class="sm:flex sm:items-start sm:justify-between">
               <div>
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
                   {{ organizationService.currentOrg()?.name }}
                 </h3>
-                <div class="mt-2 max-w-xl text-sm text-gray-500">
+                <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
                   <p>Organization ID: {{ organizationService.currentOrg()?.id }}</p>
                   <p>Created: {{ organizationService.currentOrg()?.createdAt | date:'medium' }}</p>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Tabs for Members and Invitations -->
+        <div class="mt-6">
+          <div class="border-b border-gray-200 dark:border-gray-700">
+            <nav class="-mb-px flex space-x-8">
+              <button
+                type="button"
+                (click)="activeTab.set('members')"
+                class="py-4 px-1 border-b-2 font-medium text-sm"
+                [ngClass]="activeTab() === 'members'
+                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400'"
+              >
+                Members ({{ organizationService.members().length }})
+              </button>
+              @if (canInvite()) {
+                <button
+                  type="button"
+                  (click)="activeTab.set('invitations')"
+                  class="py-4 px-1 border-b-2 font-medium text-sm"
+                  [ngClass]="activeTab() === 'invitations'
+                    ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400'"
+                >
+                  Pending Invitations ({{ organizationService.pendingInvitations().length }})
+                </button>
+              }
+            </nav>
+          </div>
+
+          <!-- Members Tab -->
+          @if (activeTab() === 'members') {
+            <div class="mt-4 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+              <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                @for (member of organizationService.members(); track member.id) {
+                  <li class="px-4 py-4 sm:px-6">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center min-w-0">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                          <span class="text-sm font-medium text-gray-600 dark:text-gray-300">
+                            {{ (member.firstName?.[0] || member.email[0]).toUpperCase() }}
+                          </span>
+                        </div>
+                        <div class="ml-4">
+                          <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                            @if (member.firstName || member.lastName) {
+                              {{ member.firstName }} {{ member.lastName }}
+                            } @else {
+                              {{ member.email }}
+                            }
+                          </p>
+                          <p class="text-sm text-gray-500 dark:text-gray-400">{{ member.email }}</p>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="getRoleBadgeClass(member.role)">
+                          {{ member.role }}
+                        </span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Joined {{ member.joinedAt | date:'shortDate' }}</span>
+                      </div>
+                    </div>
+                  </li>
+                } @empty {
+                  <li class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No members found</li>
+                }
+              </ul>
+            </div>
+          }
+
+          <!-- Invitations Tab -->
+          @if (activeTab() === 'invitations' && canInvite()) {
+            <div class="mt-4 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+              <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                @for (invitation of organizationService.invitations(); track invitation.id) {
+                  <li class="px-4 py-4 sm:px-6">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center min-w-0">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                          <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                          </svg>
+                        </div>
+                        <div class="ml-4">
+                          <p class="text-sm font-medium text-gray-900 dark:text-white">{{ invitation.email }}</p>
+                          <div class="flex items-center gap-2 mt-1">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" [ngClass]="getRoleBadgeClass(invitation.role)">{{ invitation.role }}</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" [ngClass]="getStatusBadgeClass(invitation.status)">{{ invitation.status }}</span>
+                            @if (invitation.status === 'PENDING') {
+                              <span class="text-xs" [ngClass]="isExpired(invitation.expiresAt) ? 'text-red-500' : 'text-gray-500'">{{ getExpiryText(invitation.expiresAt) }}</span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        @if (invitation.status === 'PENDING' && !isExpired(invitation.expiresAt)) {
+                          <button type="button" (click)="copyInviteLink(invitation)" class="p-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700" title="Copy link">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                          </button>
+                          <button type="button" (click)="revokeInvitation(invitation)" class="p-2 border border-red-300 dark:border-red-600 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30" title="Revoke">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                          </button>
+                        }
+                        @if (invitation.status === 'PENDING' && isExpired(invitation.expiresAt)) {
+                          <button type="button" (click)="resendInvitation(invitation)" class="px-3 py-1.5 border border-indigo-300 rounded-md text-sm text-indigo-600 hover:bg-indigo-50">Resend</button>
+                        }
+                      </div>
+                    </div>
+                  </li>
+                } @empty {
+                  <li class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">No invitations yet</li>
+                }
+              </ul>
+            </div>
+          }
         </div>
       </div>
     }
@@ -153,37 +253,37 @@
           (click)="closeModal()"
           aria-label="Close modal"
         >
-          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+          <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
         </button>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
           <form [formGroup]="orgForm" (ngSubmit)="onSubmit()">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">Create New Organization</h3>
+            <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Create New Organization</h3>
 
               <div>
-                <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
                 <input
                   type="text"
                   id="name"
                   formControlName="name"
-                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 sm:text-sm"
                   placeholder="Enter organization name"
                 />
               </div>
             </div>
 
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
               <button
                 type="submit"
                 [disabled]="orgForm.invalid || organizationService.isLoading()"
-                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-base font-medium text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
               >
                 Create
               </button>
               <button
                 type="button"
                 (click)="closeModal()"
-                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-600 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
               >
                 Cancel
               </button>
@@ -193,4 +293,78 @@
       </div>
     </div>
   }
+
+  <!-- Invite User Modal -->
+  @if (showInviteModal() && organizationService.currentOrg() && currentUserRole()) {
+    <app-invite-user-modal
+      [organizationId]="organizationService.currentOrg()!.id"
+      [organizationName]="organizationService.currentOrg()!.name"
+      [currentUserRole]="currentUserRole()!"
+      (close)="closeInviteModal()"
+      (invitationCreated)="onInvitationCreated($event)"
+    />
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteConfirm()) {
+    <div class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" (click)="closeDeleteConfirm()">
+          <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+        </div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                  Delete Organization
+                </h3>
+                <div class="mt-2">
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Are you sure you want to delete <strong class="text-gray-900 dark:text-white">{{ organizationService.currentOrg()?.name }}</strong>? 
+                    This action cannot be undone. All tasks, members, and invitations associated with this organization will be permanently deleted.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              type="button"
+              (click)="deleteOrganization()"
+              [disabled]="organizationService.isLoading()"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+            >
+              @if (organizationService.isLoading()) {
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Deleting...
+              } @else {
+                Delete
+              }
+            </button>
+            <button
+              type="button"
+              (click)="closeDeleteConfirm()"
+              [disabled]="organizationService.isLoading()"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-600 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>
+

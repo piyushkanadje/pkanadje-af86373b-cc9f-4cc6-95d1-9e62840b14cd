@@ -1,10 +1,15 @@
 <!-- Header -->
-<div class="flex justify-between items-center mb-6">
-  <h1 class="text-2xl font-semibold text-gray-900">Tasks</h1>
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Tasks</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+      {{ taskService.filteredTaskCount() }} of {{ taskService.taskCount() }} tasks
+    </p>
+  </div>
   @if (canCreateTasks()) {
     <button
       (click)="showCreateModal.set(true)"
-      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900"
     >
       <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -12,225 +17,389 @@
       New Task
     </button>
   } @else {
-    <span class="text-sm text-gray-500 italic">View only (Viewer role)</span>
+    <span class="text-sm text-gray-500 dark:text-gray-400 italic">View only (Viewer role)</span>
   }
 </div>
 
+<!-- Toolbar: Search, Filter, Sort -->
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+  <div class="flex flex-col lg:flex-row gap-4">
+    <!-- Search Input -->
+    <div class="flex-1">
+      <label for="search" class="sr-only">Search tasks</label>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input
+          type="text"
+          id="search"
+          [(ngModel)]="searchInput"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Search tasks by title or description..."
+          class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
+      </div>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="w-full lg:w-48">
+      <label for="category-filter" class="sr-only">Filter by category</label>
+      <select
+        id="category-filter"
+        [value]="taskService.selectedCategory() || ''"
+        (change)="onCategoryChange($event)"
+        class="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+      >
+        <option value="">All Categories</option>
+        <option [value]="TaskCategory.GENERAL">📋 General</option>
+        <option [value]="TaskCategory.WORK">💼 Work</option>
+        <option [value]="TaskCategory.PERSONAL">🏠 Personal</option>
+        <option [value]="TaskCategory.URGENT">🔥 Urgent</option>
+      </select>
+    </div>
+
+    <!-- Sort By -->
+    <div class="w-full lg:w-44">
+      <label for="sort-by" class="sr-only">Sort by</label>
+      <select
+        id="sort-by"
+        [value]="taskService.sortBy()"
+        (change)="onSortChange($event)"
+        class="block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+      >
+        <option value="date">📅 Date Created</option>
+        <option value="priority">⚡ Priority</option>
+        <option value="alpha">🔤 Alphabetical</option>
+      </select>
+    </div>
+
+    <!-- Clear Filters Button -->
+    @if (taskService.searchQuery() || taskService.selectedCategory()) {
+      <button
+        (click)="clearFilters()"
+        class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      >
+        <svg class="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Clear
+      </button>
+    }
+  </div>
+</div>
+
 @if (taskService.error()) {
-  <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+  <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded relative mb-4" role="alert">
     <span class="block sm:inline">{{ taskService.error() }}</span>
   </div>
 }
 
-<!-- Task Kanban Board -->
+<!-- Task Kanban Board with Drag and Drop -->
 <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
   <!-- To Do Column -->
-  <div class="bg-gray-50 rounded-lg p-4">
-    <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+  <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 min-h-[200px]">
+    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
       <span class="w-3 h-3 bg-yellow-400 rounded-full mr-2"></span>
       To Do ({{ taskService.todoTasks().length }})
     </h2>
-    <div class="space-y-3">
+    <div
+      cdkDropList
+      #todoList="cdkDropList"
+      [cdkDropListData]="taskService.todoTasks()"
+      [cdkDropListConnectedTo]="[inProgressList, doneList]"
+      (cdkDropListDropped)="onDrop($event, TaskStatus.TODO)"
+      class="space-y-3 min-h-[100px]"
+      [class.bg-yellow-50]="false"
+    >
       @for (task of taskService.todoTasks(); track task.id) {
-        <button
-          type="button"
-          class="w-full text-left bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
+        <div
+          cdkDrag
+          [cdkDragData]="task"
+          [cdkDragDisabled]="!canEditTasks()"
+          class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing"
           [class.cursor-pointer]="canEditTasks()"
           [class.cursor-default]="!canEditTasks()"
-          (click)="editTask(task)"
         >
-          <h3 class="font-medium text-gray-900">{{ task.title }}</h3>
-          @if (task.description) {
-            <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ task.description }}</p>
-          }
-          <div class="mt-2 flex items-center space-x-2">
-            @if (task.priority) {
+          <!-- Drag Preview -->
+          <div *cdkDragPlaceholder class="bg-yellow-100 dark:bg-yellow-900/30 border-2 border-dashed border-yellow-400 rounded-lg h-24"></div>
+          
+          <button type="button" class="w-full text-left" (click)="editTask(task)">
+            <h3 class="font-medium text-gray-900 dark:text-white">{{ task.title }}</h3>
+            @if (task.description) {
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{{ task.description }}</p>
+            }
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <!-- Category Badge -->
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                [ngClass]="getPriorityClass(task.priority)"
+                [ngClass]="getCategoryClass(task.category)"
               >
-                {{ task.priority }}
+                {{ getCategoryIcon(task.category) }} {{ task.category }}
               </span>
-            }
-          </div>
-            </button>
-          } @empty {
-            <p class="text-sm text-gray-500 text-center py-4">No tasks</p>
-          }
-        </div>
-      </div>
-
-      <!-- In Progress Column -->
-      <div class="bg-gray-50 rounded-lg p-4">
-        <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-          <span class="w-3 h-3 bg-blue-400 rounded-full mr-2"></span>
-          In Progress ({{ taskService.inProgressTasks().length }})
-        </h2>
-        <div class="space-y-3">
-          @for (task of taskService.inProgressTasks(); track task.id) {
-            <button
-              type="button"
-              class="w-full text-left bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
-              [class.cursor-pointer]="canEditTasks()"
-              [class.cursor-default]="!canEditTasks()"
-              (click)="editTask(task)"
-            >
-              <h3 class="font-medium text-gray-900">{{ task.title }}</h3>
-              @if (task.description) {
-                <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ task.description }}</p>
+              <!-- Priority Badge -->
+              @if (task.priority) {
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                  [ngClass]="getPriorityClass(task.priority)"
+                >
+                  {{ task.priority }}
+                </span>
               }
-              <div class="mt-2 flex items-center space-x-2">
-                @if (task.priority) {
-                  <span
-                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                    [ngClass]="getPriorityClass(task.priority)"
-                  >
-                    {{ task.priority }}
-                  </span>
-                }
-              </div>
-            </button>
-          } @empty {
-            <p class="text-sm text-gray-500 text-center py-4">No tasks</p>
-          }
+            </div>
+          </button>
         </div>
-      </div>
-
-      <!-- Done Column -->
-      <div class="bg-gray-50 rounded-lg p-4">
-        <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-          <span class="w-3 h-3 bg-green-400 rounded-full mr-2"></span>
-          Done ({{ taskService.doneTasks().length }})
-        </h2>
-        <div class="space-y-3">
-          @for (task of taskService.doneTasks(); track task.id) {
-            <button
-              type="button"
-              class="w-full text-left bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
-              [class.cursor-pointer]="canEditTasks()"
-              [class.cursor-default]="!canEditTasks()"
-              (click)="editTask(task)"
-            >
-              <h3 class="font-medium text-gray-900">{{ task.title }}</h3>
-              @if (task.description) {
-                <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ task.description }}</p>
-              }
-              <div class="mt-2 flex items-center space-x-2">
-                @if (task.priority) {
-                  <span
-                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                    [ngClass]="getPriorityClass(task.priority)"
-                  >
-                    {{ task.priority }}
-                  </span>
-                }
-              </div>
-            </button>
-          } @empty {
-            <p class="text-sm text-gray-500 text-center py-4">No tasks</p>
-          }
-        </div>
-      </div>
+      } @empty {
+        <p class="text-sm text-gray-500 dark:text-gray-400 text-center py-8">No tasks</p>
+      }
     </div>
+  </div>
 
-  <!-- Create Task Modal -->
-  @if (showCreateModal() && canCreateTasks()) {
-    <div class="fixed inset-0 z-10 overflow-y-auto">
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <button
-          type="button"
-          class="fixed inset-0 transition-opacity cursor-default"
-          (click)="closeModal()"
-          aria-label="Close modal"
+  <!-- In Progress Column -->
+  <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 min-h-[200px]">
+    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+      <span class="w-3 h-3 bg-blue-400 rounded-full mr-2"></span>
+      In Progress ({{ taskService.inProgressTasks().length }})
+    </h2>
+    <div
+      cdkDropList
+      #inProgressList="cdkDropList"
+      [cdkDropListData]="taskService.inProgressTasks()"
+      [cdkDropListConnectedTo]="[todoList, doneList]"
+      (cdkDropListDropped)="onDrop($event, TaskStatus.IN_PROGRESS)"
+      class="space-y-3 min-h-[100px]"
+    >
+      @for (task of taskService.inProgressTasks(); track task.id) {
+        <div
+          cdkDrag
+          [cdkDragData]="task"
+          [cdkDragDisabled]="!canEditTasks()"
+          class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing"
+          [class.cursor-pointer]="canEditTasks()"
+          [class.cursor-default]="!canEditTasks()"
         >
-          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-        </button>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">
-                {{ editingTask() ? 'Edit Task' : 'Create New Task' }}
-              </h3>
+          <!-- Drag Preview -->
+          <div *cdkDragPlaceholder class="bg-blue-100 dark:bg-blue-900/30 border-2 border-dashed border-blue-400 rounded-lg h-24"></div>
+          
+          <button type="button" class="w-full text-left" (click)="editTask(task)">
+            <h3 class="font-medium text-gray-900 dark:text-white">{{ task.title }}</h3>
+            @if (task.description) {
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{{ task.description }}</p>
+            }
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <!-- Category Badge -->
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                [ngClass]="getCategoryClass(task.category)"
+              >
+                {{ getCategoryIcon(task.category) }} {{ task.category }}
+              </span>
+              <!-- Priority Badge -->
+              @if (task.priority) {
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                  [ngClass]="getPriorityClass(task.priority)"
+                >
+                  {{ task.priority }}
+                </span>
+              }
+            </div>
+          </button>
+        </div>
+      } @empty {
+        <p class="text-sm text-gray-500 dark:text-gray-400 text-center py-8">No tasks</p>
+      }
+    </div>
+  </div>
 
-              <div class="space-y-4">
+  <!-- Done Column -->
+  <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 min-h-[200px]">
+    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+      <span class="w-3 h-3 bg-green-400 rounded-full mr-2"></span>
+      Done ({{ taskService.doneTasks().length }})
+    </h2>
+    <div
+      cdkDropList
+      #doneList="cdkDropList"
+      [cdkDropListData]="taskService.doneTasks()"
+      [cdkDropListConnectedTo]="[todoList, inProgressList]"
+      (cdkDropListDropped)="onDrop($event, TaskStatus.DONE)"
+      class="space-y-3 min-h-[100px]"
+    >
+      @for (task of taskService.doneTasks(); track task.id) {
+        <div
+          cdkDrag
+          [cdkDragData]="task"
+          [cdkDragDisabled]="!canEditTasks()"
+          class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing"
+          [class.cursor-pointer]="canEditTasks()"
+          [class.cursor-default]="!canEditTasks()"
+        >
+          <!-- Drag Preview -->
+          <div *cdkDragPlaceholder class="bg-green-100 dark:bg-green-900/30 border-2 border-dashed border-green-400 rounded-lg h-24"></div>
+          
+          <button type="button" class="w-full text-left" (click)="editTask(task)">
+            <h3 class="font-medium text-gray-900 dark:text-white line-through opacity-75">{{ task.title }}</h3>
+            @if (task.description) {
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2 opacity-75">{{ task.description }}</p>
+            }
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <!-- Category Badge -->
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium opacity-75"
+                [ngClass]="getCategoryClass(task.category)"
+              >
+                {{ getCategoryIcon(task.category) }} {{ task.category }}
+              </span>
+              <!-- Priority Badge -->
+              @if (task.priority) {
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium opacity-75"
+                  [ngClass]="getPriorityClass(task.priority)"
+                >
+                  {{ task.priority }}
+                </span>
+              }
+            </div>
+          </button>
+        </div>
+      } @empty {
+        <p class="text-sm text-gray-500 dark:text-gray-400 text-center py-8">No tasks</p>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Create/Edit Task Modal -->
+@if (showCreateModal() && canCreateTasks()) {
+  <div class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <button
+        type="button"
+        class="fixed inset-0 transition-opacity cursor-default"
+        (click)="closeModal()"
+        aria-label="Close modal"
+      >
+        <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+      </button>
+      
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+      
+      <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+          <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              {{ editingTask() ? 'Edit Task' : 'Create New Task' }}
+            </h3>
+
+            <div class="space-y-4">
+              <!-- Title -->
+              <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  formControlName="title"
+                  class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="Enter task title..."
+                />
+              </div>
+
+              <!-- Description -->
+              <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                <textarea
+                  id="description"
+                  formControlName="description"
+                  rows="3"
+                  class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="Add a description..."
+                ></textarea>
+              </div>
+
+              <!-- Status and Priority Row -->
+              <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
-                  <input
-                    type="text"
-                    id="title"
-                    formControlName="title"
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
+                  <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                  <select
+                    id="status"
+                    formControlName="status"
+                    class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                    <option [value]="TaskStatus.TODO">To Do</option>
+                    <option [value]="TaskStatus.IN_PROGRESS">In Progress</option>
+                    <option [value]="TaskStatus.DONE">Done</option>
+                  </select>
                 </div>
 
                 <div>
-                  <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    id="description"
-                    formControlName="description"
-                    rows="3"
-                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  ></textarea>
+                  <label for="priority" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
+                  <select
+                    id="priority"
+                    formControlName="priority"
+                    class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                    <option [value]="TaskPriority.LOW">Low</option>
+                    <option [value]="TaskPriority.MEDIUM">Medium</option>
+                    <option [value]="TaskPriority.HIGH">High</option>
+                    <option [value]="TaskPriority.URGENT">Urgent</option>
+                  </select>
                 </div>
+              </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                    <select
-                      id="status"
-                      formControlName="status"
-                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                      <option [value]="TaskStatus.TODO">To Do</option>
-                      <option [value]="TaskStatus.IN_PROGRESS">In Progress</option>
-                      <option [value]="TaskStatus.DONE">Done</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label for="priority" class="block text-sm font-medium text-gray-700">Priority</label>
-                    <select
-                      id="priority"
-                      formControlName="priority"
-                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                      <option [value]="TaskPriority.LOW">Low</option>
-                      <option [value]="TaskPriority.MEDIUM">Medium</option>
-                      <option [value]="TaskPriority.HIGH">High</option>
-                      <option [value]="TaskPriority.URGENT">Urgent</option>
-                    </select>
-                  </div>
-                </div>
+              <!-- Category -->
+              <div>
+                <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
+                <select
+                  id="category"
+                  formControlName="category"
+                  class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                >
+                  <option [value]="TaskCategory.GENERAL">📋 General</option>
+                  <option [value]="TaskCategory.WORK">💼 Work</option>
+                  <option [value]="TaskCategory.PERSONAL">🏠 Personal</option>
+                  <option [value]="TaskCategory.URGENT">🔥 Urgent</option>
+                </select>
               </div>
             </div>
+          </div>
 
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-              <button
-                type="submit"
-                [disabled]="taskForm.invalid || taskService.isLoading()"
-                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
-              >
-                {{ editingTask() ? 'Update' : 'Create' }}
-              </button>
-              @if (editingTask()) {
-                <button
-                  type="button"
-                  (click)="deleteTask()"
-                  class="mt-3 w-full inline-flex justify-center rounded-md border border-red-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                >
-                  Delete
-                </button>
+          <!-- Modal Footer -->
+          <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+            <button
+              type="submit"
+              [disabled]="taskForm.invalid || taskService.isLoading()"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              @if (taskService.isLoading()) {
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
               }
+              {{ editingTask() ? 'Update' : 'Create' }}
+            </button>
+            @if (editingTask()) {
               <button
                 type="button"
-                (click)="closeModal()"
-                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                (click)="deleteTask()"
+                class="w-full inline-flex justify-center rounded-md border border-red-300 dark:border-red-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm"
               >
-                Cancel
+                Delete
               </button>
-            </div>
-          </form>
-        </div>
+            }
+            <button
+              type="button"
+              (click)="closeModal()"
+              class="mt-3 sm:mt-0 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
-  }
+  </div>
+}
