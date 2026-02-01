@@ -27,6 +27,13 @@ export class User {
   @Column({ type: 'varchar', length: 100, nullable: true })
   lastName?: string;
 
+  @Column({ type: 'varchar', length: 64, nullable: true, name: 'reset_token', select: false })
+  @Index('idx_user_reset_token')
+  resetToken?: string;
+
+  @Column({ type: 'timestamp', nullable: true, name: 'reset_token_expiry', select: false })
+  resetTokenExpiry?: Date;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 

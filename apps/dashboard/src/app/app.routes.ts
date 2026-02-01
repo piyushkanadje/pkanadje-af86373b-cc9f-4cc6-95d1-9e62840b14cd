@@ -27,6 +27,30 @@ export const appRoutes: Route[] = [
       ),
     canActivate: [noAuthGuard],
   },
+  {
+    path: 'accept-invite',
+    loadComponent: () =>
+      import('./pages/accept-invite/accept-invite.component').then(
+        (m) => m.AcceptInviteComponent
+      ),
+    canActivate: [noAuthGuard],
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./pages/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent
+      ),
+    canActivate: [noAuthGuard],
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./pages/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent
+      ),
+    canActivate: [noAuthGuard],
+  },
 
   // Protected routes with shared layout
   {

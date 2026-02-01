@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, effect, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, signal, effect, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
@@ -168,11 +168,12 @@ import { ThemeService } from '../../core/services/theme.service';
     }
   `]
 })
-export class AnalyticsComponent implements OnInit {
+export class AnalyticsComponent implements OnInit, AfterViewInit {
   private readonly taskService = inject(TaskService);
   private readonly themeService = inject(ThemeService);
 
-  @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
+  @ViewChildren(BaseChartDirective) charts!: QueryList<BaseChartDirective>;
+  private chartsReady = false;
 
   // Signals for task counts
   todoCount = signal(0);
@@ -288,6 +289,22 @@ export class AnalyticsComponent implements OnInit {
     this.taskService.loadTasks();
   }
 
+  ngAfterViewInit(): void {
+    // Charts are now ready
+    this.chartsReady = true;
+    // Trigger initial update
+    setTimeout(() => this.updateAllCharts(), 0);
+  }
+
+  /**
+   * Update all charts
+   */
+  private updateAllCharts(): void {
+    if (this.chartsReady && this.charts) {
+      this.charts.forEach(chart => chart.update());
+    }
+  }
+
   /**
    * Update all charts with current data
    */
@@ -298,8 +315,8 @@ export class AnalyticsComponent implements OnInit {
     // Update doughnut chart data
     this.doughnutChartData.datasets[0].data = [rate, 100 - rate];
 
-    // Force chart update
-    this.chart?.update();
+    // Force all charts to update
+    this.updateAllCharts();
   }
 
   /**
@@ -325,8 +342,8 @@ export class AnalyticsComponent implements OnInit {
     // Update doughnut chart colors
     this.doughnutChartData.datasets[0].backgroundColor = ['#10B981', doughnutBg];
 
-    // Force chart update
-    this.chart?.update();
+    // Force all charts to update
+    this.updateAllCharts();
   }
 
   /**

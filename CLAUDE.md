@@ -60,7 +60,7 @@ docker-compose up -d                # Start PostgreSQL
 ## Authentication System
 
 ### JWT Flow
-1. User authenticates via `POST /api/auth/login` with email/password
+1. User authenticates via `POST /api/v1/auth/login` with email/password
 2. Server validates credentials and returns JWT token
 3. Client includes token in `Authorization: Bearer <token>` header
 4. JwtAuthGuard validates token and populates `request.user`
@@ -108,10 +108,10 @@ JWT_EXPIRES_IN=1d
 ## API Endpoints
 
 ### Auth
-- `POST /api/auth/register` - Create new user
-- `POST /api/auth/login` - Authenticate and get JWT
-- `GET /api/auth/profile` - Get current user (requires JWT)
-- `GET /api/auth/org/:organizationId/admin-test` - Test ADMIN access
+- `POST /api/v1/auth/register` - Create new user
+- `POST /api/v1/auth/login` - Authenticate and get JWT
+- `GET /api/v1/auth/profile` - Get current user (requires JWT)
+- `GET /api/v1/auth/org/:organizationId/admin-test` - Test ADMIN access
 
 ### Protected Routes Pattern
 All organization-specific routes should:

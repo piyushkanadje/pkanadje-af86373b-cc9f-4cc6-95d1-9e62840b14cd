@@ -38,7 +38,7 @@ const PRIORITY_WEIGHT: Record<TaskPriority, number> = {
   providedIn: 'root',
 })
 export class TaskService {
-  private readonly API_URL = '/api/tasks';
+  private readonly API_URL = '/api/v1/tasks';
   private readonly organizationService = inject(OrganizationService);
   private readonly http = inject(HttpClient);
 

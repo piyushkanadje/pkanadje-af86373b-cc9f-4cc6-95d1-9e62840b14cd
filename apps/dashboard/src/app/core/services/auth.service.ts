@@ -17,7 +17,7 @@ interface RegisterResponse {
 })
 export class AuthService {
   private readonly TOKEN_KEY = 'auth_token';
-  private readonly API_URL = '/api/auth';
+  private readonly API_URL = '/api/v1/auth';
 
   // Signals for reactive state management
   private readonly _currentUser = signal<IUserWithOrganizations | null>(null);
@@ -158,6 +158,53 @@ export class AuthService {
    */
   clearError(): void {
     this._error.set(null);
+  }
+
+  /**
+   * Change password for authenticated user
+   */
+  changePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.API_URL}/change-password`,
+      { currentPassword, newPassword }
+    );
+  }
+
+  /**
+   * Request password reset email
+   */
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.API_URL}/forgot-password`,
+      { email }
+    );
+  }
+
+  /**
+   * Validate a password reset token
+   */
+  validateResetToken(
+    token: string
+  ): Observable<{ valid: boolean; email?: string }> {
+    return this.http.get<{ valid: boolean; email?: string }>(
+      `${this.API_URL}/validate-reset-token/${token}`
+    );
+  }
+
+  /**
+   * Reset password using token
+   */
+  resetPassword(
+    token: string,
+    newPassword: string
+  ): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.API_URL}/reset-password`,
+      { token, newPassword }
+    );
   }
 
   /**

@@ -1,4 +1,11 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
+import * as crypto from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -147,5 +154,121 @@ export class AuthService {
 
     // Auto-login after registration
     return this.login(newUser);
+  }
+
+  /**
+   * Find user by ID with password field included
+   */
+  async findUserByIdWithPassword(id: string): Promise<User | null> {
+    return this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.id = :id', { id })
+      .getOne();
+  }
+
+  /**
+   * Changes user password after validating current password
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<{ message: string }> {
+    const user = await this.findUserByIdWithPassword(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isCurrentPasswordValid = await this.validatePassword(
+      currentPassword,
+      user.password
+    );
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.update(userId, { password: hashedNewPassword });
+
+    return { message: 'Password changed successfully' };
+  }
+
+  /**
+   * Generates a password reset token and stores it
+   * Returns the token (to be sent via email)
+   */
+  async generatePasswordResetToken(email: string): Promise<string | null> {
+    const user = await this.findUserByEmail(email);
+    if (!user) {
+      // Return null silently to prevent email enumeration
+      return null;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await this.userRepository.update(user.id, {
+      resetToken,
+      resetTokenExpiry,
+    });
+
+    return resetToken;
+  }
+
+  /**
+   * Validates a password reset token
+   */
+  async validatePasswordResetToken(
+    token: string
+  ): Promise<{ valid: boolean; email?: string }> {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.resetToken')
+      .addSelect('user.resetTokenExpiry')
+      .where('user.resetToken = :token', { token })
+      .getOne();
+
+    if (!user) {
+      return { valid: false };
+    }
+
+    if (!user.resetTokenExpiry || user.resetTokenExpiry < new Date()) {
+      return { valid: false };
+    }
+
+    return { valid: true, email: user.email };
+  }
+
+  /**
+   * Resets password using a valid reset token
+   */
+  async resetPassword(
+    token: string,
+    newPassword: string
+  ): Promise<{ message: string }> {
+    const validation = await this.validatePasswordResetToken(token);
+    if (!validation.valid) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.resetToken')
+      .where('user.resetToken = :token', { token })
+      .getOne();
+
+    if (!user) {
+      throw new BadRequestException('Invalid reset token');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.update(user.id, {
+      password: hashedPassword,
+      resetToken: undefined,
+      resetTokenExpiry: undefined,
+    });
+
+    return { message: 'Password reset successfully' };
   }
 }
